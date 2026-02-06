@@ -1,0 +1,63 @@
+{
+    "CDT": {
+        "Description": "A C++ library for creation of constrained delaunay triangulation (CDT). ",
+        "Features": [],
+        "Applications": [
+            "Creation of NavMesh, that can be updated efficiently at runtime",
+            "Fast Raycasting",
+            "Fast construction  of 2D Shadows",
+            "Useful for dynamic construction of NavMeshes"
+        ],
+        "DemoLink": "/CDT/cdt.js",
+        "GithubLink": "https://github.com/smutekj/CDT"
+    },
+    "2D Graphics Library": {
+        "Description": "Small library for 2D graphics with OpenGLES 3.0",
+        "DemoLink": "",
+        "GithubLink": "https://github.com/smutekj/simple-emscripten-renderer"
+    },
+    "Multi-agent Path Finding": {
+        "Description": "Implementation of pathfinding on a triangulation navmesh.  The path finding is decomposed into two steps. First step finds a polygon made of connected triangles that connect the start and end points of the path, which likely contain the optimal path. The second step finds an optimal path within this polygon by \"pulling a thread\" between the end points. \n The agents themselves interract ",
+        "Features": [
+            "Fast vision field construction of agents using a 1D vision grid",
+            "A* algorithm followed by the Funnel algorithm for finding almost optimal paths",
+            "Agent-agent collision detections are optimized using a simple grid",
+            "Agent physics governed using Boids simulation with modifiable parameters"
+        ],
+        "Applications": [],
+        "DemoLink": "/PathFinding/smoke.js",
+        "GithubLink": ""
+    },
+    "Vocabulary Games": {
+        "Description": "An application with minigames aimed to learn simple vocabulary. Vocabulary is trained by a combination of tests and playing games, where player interracts with studied words.",
+        "Features": [
+            "Own editor to quickly prototype new levels",
+            "Games run also on mobile phones"
+        ],
+        "Applications": [],
+        "DemoLink": "https://smutekj.github.io/Vocabular/index.html",
+        "GithubLink": "https://github.com/smutekj/VocabularGame"
+    },
+    "Space Shooter": {
+        "Description": "A simple space shooter game made with my own graphics library",
+        "Features": [
+            "Collision detection optimisation using own Bounding Volume Hiearchy implementation"
+        ],
+        "Applications": [],
+        "DemoLink": "/SpaceShooter/projectx.js",
+        "GithubLink": ""
+    },
+    "Collision Detection": {
+        "DemoLink": "/CollisionDetection/smoke_col.js",
+        "GithubLink": ""
+    },
+    "Physics": {
+        "Description": "2D physics of rigid bodies with impulse-based resolution of constraints.",
+        "Features": [
+            "Gilbert-Johnson-Keerthi (GJK) and Minkwoski Portal Refinement (MPR) are both algorithms that are used to determine whether two convex shapes intersect. Furthermore by following the algorithm with Expanding Polygon Algorithm (EPA), they can determine penetration depth and minimum translation vector."
+        ],
+        "Applications": [],
+        "DemoLink": "/Physics/smoke.js",
+        "GithubLink": ""
+    }
+}

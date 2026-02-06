@@ -1,0 +1,33 @@
+.coolButton {
+    width: 150px;
+    margin: 5px;
+    padding: 5px;
+    border-radius: 5px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    transition: transform 0.3s ease;
+    font-size: 0.85em;
+}
+
+.highLightCircle {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+}
+
+.coolButton:hover .highLightCircle {
+    transform: scale(1.2);
+}
+
+.coolButton:hover {
+  transform: translateY(-4px);
+}

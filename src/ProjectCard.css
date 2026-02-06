@@ -1,0 +1,11 @@
+
+
+.projectCardContainer{
+    border: solid;
+    border-radius: 25px;
+    padding-left: 20px;
+    padding-right: 20px;
+    font-size: 0.5em;
+}
+
+
