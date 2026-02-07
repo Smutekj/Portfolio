@@ -60,7 +60,7 @@ const projectColors: Array<RGBA> = [
   rgba(0, 198, 198, 1),
   rgba(0, 255, 155, 1),
   rgba(24, 192, 0, 1),
-  rgba(194, 0, 194, 1),
+  rgba(235, 0, 235, 1),
   rgba(191, 101, 0, 1),
   rgba(205, 255, 0, 1),
 ]
@@ -163,7 +163,7 @@ function App() {
                 />
               })}
             </div>
-            <div id="projectHolder" className='projectHolder slide-in'>
+            <div id="projectHolder" className='projectHolder'>
               <ProjectCard
                 title={projectCardsData[activeProject].title}
                 Content={ProjectCards[0]}

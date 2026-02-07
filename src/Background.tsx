@@ -228,7 +228,7 @@ const fragmentShaderSource = `
             vec2 uv = (gl_FragCoord.xy + resolution.xy*2.5);
             uv.x *= resolution.x / resolution.y; // aspect ratio
 
-            vec3 hex = hexCoord(uv, 150. );
+            vec3 hex = hexCoord(uv, 100. );
             float cellHash = rand12(hex.xy);
             
             float bubbles = 0.4-(snoise(vec3(uv /500., time*0.1))*0.2 + 0.2); //lavaLamp(uv/resolution.y); //
@@ -240,9 +240,6 @@ const fragmentShaderSource = `
             col -= 0.3*cellHash;
             col += 0.7*bubbles* primaryColor; 
             gl_FragColor = vec4(col, 0.2);
-
-
-            
         }
     `;
 

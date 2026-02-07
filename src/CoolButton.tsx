@@ -1,10 +1,10 @@
 import './CoolButton.css'
 
-import { useState, useEffect } from 'react'
+import { useState,  useEffect } from 'react'
 import { type RGBA, rgba, rgbaToCss } from './Colors.tsx'
 
 import { IconContext, type IconType } from "react-icons";
-import { type MotionProps, motion, animate} from "framer-motion";
+import { type MotionProps, motion, animate } from "framer-motion";
 import { type ComponentType } from "react";
 import { type IconBaseProps } from "react-icons"
 
@@ -21,34 +21,38 @@ type CoolButtonProps = {
 };
 
 
-function interpolate(c1: RGBA, c2: RGBA, alpha: number)
-{
+function interpolate(c1: RGBA, c2: RGBA, alpha: number) {
     return rgba(
-        c2.r + alpha * (c2.r - c1.r),
-        c2.g + alpha * (c2.g - c1.g),
-        c2.b + alpha * (c2.b - c1.b),
-        c2.a + alpha * (c2.a - c1.a)
+        c1.r + alpha * (c2.r - c1.r),
+        c1.g + alpha * (c2.g - c1.g),
+        c1.b + alpha * (c2.b - c1.b),
+        c1.a + alpha * (c2.a - c1.a)
     )
 }
 
 export default function CoolButton({ text, primaryColor, outlineColor, onClick, isSelected, Icon }: CoolButtonProps) {
 
     const [hovered, setHovered] = useState<boolean>(false);
-    const [iconColor, setIconColor] = useState<string>(rgbaToCss(outlineColor));
+    const [iconColor, setIconColor] = useState<RGBA>(outlineColor);
+    const [oldColor, setOldColor] = useState<RGBA>(outlineColor);
     useEffect(() => {
-        const newColor = hovered  || isSelected ? rgba(255,255,255, 1) : outlineColor;
+        const newColor = hovered || isSelected ? rgba(255, 255, 255, 1) : outlineColor;
+
         const controls = animate(0, 1,
             {
                 onUpdate: (progress: number) => {
-                    const currentColor = interpolate(outlineColor, newColor, progress) 
-                    setIconColor(rgbaToCss(currentColor));
+                    const currentColor = interpolate(oldColor, newColor, progress)
+                    setIconColor(currentColor);
+                },
+                onComplete: () => {
+                    setOldColor(newColor);
                 }
-            ,
+                ,
                 duration: 0.69
             });
 
         return () => controls.stop(); // cleanup on unmount
-    }, [hovered, isSelected, outlineColor]); // add dependencies
+    }, [hovered, isSelected, outlineColor]);
 
 
     const c1 = rgbaToCss(rgba(primaryColor.r, primaryColor.g, primaryColor.b, 0.8));
@@ -64,23 +68,23 @@ export default function CoolButton({ text, primaryColor, outlineColor, onClick, 
             style={{
                 background: rgbaToCss(primaryColor),
                 borderColor: rgbaToCss(outlineColor),
-                borderWidth: isSelected ?  "2px" : "1px",
+                borderWidth: isSelected ? "2px" : "1px",
                 boxShadow: hovered || isSelected ? `0 0 8px ${c1}, 0 0 16px ${c2}, 0 0 24px ${c3}` : "none"
             }}
             className="coolButton"
         >
-            <span style={{ textAlign: "center", alignItems: "center", flex: 1}}>{text}</span>
+            <span style={{ textAlign: "center", alignItems: "center", flex: 1 }}>{text}</span>
             <div
                 className='highLightCircle'
                 style={{
                     background: c2,
                     border: "solid",
                     borderWidth: "2px",
-                    borderColor: iconColor
+                    borderColor: rgbaToCss(iconColor)
                 }}>
                 <IconContext.Provider value={{
                     size: "20px",
-                    color: iconColor
+                    color: rgbaToCss(iconColor)
                 }}>
                     <>
                         <Icon />
@@ -113,17 +117,16 @@ export function ButtonWithIcon({ MyIcon, text, color, onClick }: ButtonWithIconP
             onClick={onClick}
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
+            className="iconButton"
             style={{
                 background: c3,
-                position: "relative",
                 borderColor: rgbaToCss(color),
-                margin: "10px",
-                width: "200px",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
                 boxShadow: hovered ?
-                    `0 0 6px ${c1}, 0 0 18px ${c2}, 0 0 36px ${c3}` :
+                    `
+                    0px 0px 6px ${c1},
+                    0 0 18px ${c2},
+                    0 0 36px ${c3}`
+                    :
                     "none"
             }}
         >
@@ -152,4 +155,7 @@ export function ButtonWithIcon({ MyIcon, text, color, onClick }: ButtonWithIconP
         </button>
     )
 }
+
+
+
 

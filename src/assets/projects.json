@@ -8,7 +8,7 @@
             "Fast construction  of 2D Shadows",
             "Useful for dynamic construction of NavMeshes"
         ],
-        "DemoLink": "/CDT/cdt.js",
+        "DemoLink": "CDT/cdt.js",
         "GithubLink": "https://github.com/smutekj/CDT"
     },
     "2D Graphics Library": {
@@ -25,7 +25,7 @@
             "Agent physics governed using Boids simulation with modifiable parameters"
         ],
         "Applications": [],
-        "DemoLink": "/PathFinding/smoke.js",
+        "DemoLink": "PathFinding/smoke.js",
         "GithubLink": ""
     },
     "Vocabulary Games": {
@@ -44,11 +44,11 @@
             "Collision detection optimisation using own Bounding Volume Hiearchy implementation"
         ],
         "Applications": [],
-        "DemoLink": "/SpaceShooter/projectx.js",
+        "DemoLink": "SpaceShooter/projectx.js",
         "GithubLink": ""
     },
     "Collision Detection": {
-        "DemoLink": "/CollisionDetection/smoke_col.js",
+        "DemoLink": "CollisionDetection/smoke_col.js",
         "GithubLink": ""
     },
     "Physics": {
@@ -57,7 +57,7 @@
             "Gilbert-Johnson-Keerthi (GJK) and Minkwoski Portal Refinement (MPR) are both algorithms that are used to determine whether two convex shapes intersect. Furthermore by following the algorithm with Expanding Polygon Algorithm (EPA), they can determine penetration depth and minimum translation vector."
         ],
         "Applications": [],
-        "DemoLink": "/Physics/smoke.js",
+        "DemoLink": "Physics/smoke.js",
         "GithubLink": ""
     }
 }

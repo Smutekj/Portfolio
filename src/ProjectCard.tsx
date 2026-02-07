@@ -92,7 +92,7 @@ export function ProjectCard({ title, Content, githubLink, demoPath, color }: Pro
                     />
                 }
             </div>
-            {(demoOpened && demoPath) && <Game scriptPath={demoPath}></Game>}
+            {(demoOpened && demoPath) && <Game scriptPath={`${import.meta.env.BASE_URL}${demoPath}`}></Game>}
         </div>
     )
 }

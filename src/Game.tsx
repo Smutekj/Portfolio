@@ -21,8 +21,33 @@ export default function Game({ scriptPath }: GameProps) {
             <html>
             <head>
                 <style>
-                    body { margin: 0; overflow: hidden; }
+                    body { margin: 0; overflow: hidden; background: black}
                     #canvas { width: 1200; height: 800; }
+                    .loader {
+                                width: 48px;
+                                height: 48px;
+                                border: 5px solid #FFF;
+                                border-bottom-color: #FF3D00;
+                                border-radius: 50%;
+                                display: inline-block;
+                                box-sizing: border-box;
+                                animation: rotation 1s linear infinite;
+                            }
+                    #gameLoader {
+                                position: absolute;
+                                top: 50%;
+                                left: 50%;
+                                transform: translate(-50%, -50%);
+                                background: black;
+                            }
+                    @keyframes rotation {
+                                0% {
+                                    transform: rotate(0deg);
+                                }
+                                100% {
+                                    transform: rotate(360deg);
+                                }
+                            }
                 </style>
             </head>
             <body>
@@ -31,8 +56,12 @@ export default function Game({ scriptPath }: GameProps) {
                     oncontextmenu="event.preventDefault(); return false;">
                 </canvas>
                 <textarea id="output" style="display:none;"></textarea>
+                <span id="gameLoader" class="loader" style="position:absolute;background:black;"></span>
                 <script>
                     var Module = {
+                        onRuntimeInitialized: ()=>{
+                            document.getElementById("gameLoader").style.visibility = "hidden";
+                        },
                         print: function(...args) {
                             console.log(...args);
                         },
@@ -41,8 +70,16 @@ export default function Game({ scriptPath }: GameProps) {
                             console.log(text);
                         }
                     };
+                    // Load the script after a brief delay
+                    setTimeout(()=>{
+                        const gameEl = document.getElementById("gameScript");
+                        if(gameEl){ gameEl.remove(); }
+                        const script = document.createElement('script');
+                        script.id = "gameScript"
+                        script.src = "${scriptPath}";
+                        document.body.appendChild(script);
+                    }, 400)
                 </script>
-                <script async src="${scriptPath}"></script>
             </body>
             </html>
         `);
@@ -56,67 +93,14 @@ export default function Game({ scriptPath }: GameProps) {
         };
     }, [scriptPath]);
 
-    // useEffect(() => {
-    //     var statusElement = document.getElementById('status');
-    //     var progressElement = document.getElementById('progress');
-    //     var spinnerElement = document.getElementById('spinner');
-    //     var canvasElement = document.getElementById('canvas');
-    //     var outputElement = document.getElementById('output')
-
-    //     if (!canvasElement)
-    //         return
-
-    //     (window as any).Module = {
-    //         print(...args: any) {
-    //             console.log(...args);
-    //             if (outputElement) {
-    //                 var text = args.join(' ');
-    //                 outputElement.value += text + "\n";
-    //                 outputElement.scrollTop = outputElement.scrollHeight; // focus on bottom
-    //             }
-    //         },
-    //         canvas: canvasElement,
-    //         setStatus(text: String) {
-    //             console.log(text)
-    //         },
-    //         totalDependencies: 0,
-    //     };
-    //     (window as any).Module.setStatus('Downloading...');
-    //     window.onerror = (event) => {
-    //         const Module = (window as any).Module
-    //         Module.setStatus('Exception thrown, see JavaScript console');
-    //         Module.setStatus = (text: any) => {
-    //             if (text) console.error('[post-exception status] ' + text);
-    //         };
-    //     };
-
-    //      let scriptElement = document.getElementById("script") as HTMLScriptElement | null
-    //     if (!scriptElement) {
-    //         scriptElement = document.createElement("script") as HTMLScriptElement
-    //         scriptElement.async = true
-    //         scriptElement.id = "script"
-    //         scriptElement.src = scriptPath
-
-    //         document.body.appendChild(scriptElement);
-    //     } else {
-    //         scriptElement.src = scriptPath
-    //     } 
-    // }, [scriptPath]) 
 
     return (
-        <iframe
-            ref={iframeRef}
-            onContextMenu={(event) => event.preventDefault()}
-            style={{ width: '1200px', height: '800px', border: 'none' }} />
-        // <div>
-        //     <div className="emscripten_border">
-        //         <canvas className="emscripten"
-        //             id="canvas"
-        //             onContextMenu={(event) => event.preventDefault()}
-        //             tabIndex={-1}>
-        //         </canvas>
-        //     </div>
-        //     <textarea id="output" rows={8}></textarea>
-        // </div>
+        <>
+            <iframe
+                ref={iframeRef}
+                onContextMenu={(event) => event.preventDefault()}
+                style={{ width: '1200px', height: '800px', border: 'none' }} />
+
+        </>
     );
 }
