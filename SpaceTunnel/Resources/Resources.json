@@ -187,10 +187,6 @@
     "GalacticRap": {
       "volume": 100,
       "path": "Music/GalacticRap.mp3"
-    },
-    "GalaxysExpanse": {
-      "volume": 100,
-      "path": "Music/GalaxysExpanse.mp3"
     }
   },
   "Sound": {
