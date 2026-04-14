@@ -1,0 +1,25 @@
+{
+  "BlackHoles1": {
+    "topWallSpawns": {"minDistance": 20, "maxDistance": 80, "objects": []},
+    "bottomWallSpawns": {"minDistance": 20, "maxDistance": 80, "objects": []},
+    "segment": {
+      "length": 1000,
+      "minWidth": 350,
+      "maxWidth": 500,
+      "segmentCount": 10,
+      "startColor": [1, 0.5, 0, 1],
+      "endColor": [1, 0.5, 0, 1],
+      "connectionLength": 200
+    },
+    "internalSpawns": {
+      "density": 0.0002,
+      "minDistance": 120,
+      "objects": [
+        {"weight": 1, "type_id": "Pickup", "spec": {"type": "Fuel"}},
+        {"weight": 2, "type_id": "Pickup", "spec": {"type": "Money"}},
+        {"weight": 10, "type_id": "Box", "spec": {"size": [30, 30]}},
+        {"weight": 7, "type_id": "BlackHole"}
+      ]
+    }
+  }
+}

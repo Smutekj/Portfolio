@@ -1,0 +1,680 @@
+{
+  "testLevels": [],
+  "levels": [
+    {
+      "id": "MeteorLevel1",
+      "wallSpawns": [
+        {"minDistance": 20, "maxDistance": 80, "wallId": 0, "objects": []}
+      ],
+      "segmentType": "Rooms",
+      "segment": {
+        "length": 800,
+        "minWidth": 290,
+        "maxWidth": 350,
+        "segmentCount": 6,
+        "startColor": [2, 0, 0, 1],
+        "endColor": [0.1, 1.5, 0, 1],
+        "connectionLength": 200
+      },
+      "internalSpawns": [
+        {
+          "density": 0.001,
+          "minDistance": 70,
+          "objects": [
+            {"weight": 1, "type_id": "Enemy"},
+            {"weight": 25, "type_id": "Meteor", "spec": {"size": [30, 30]}}
+          ]
+        },
+        {
+          "density": 0.00001,
+          "minDistance": 50,
+          "objects": [
+            {"weight": 1, "type_id": "Pickup", "spec": {"type": "Fuel"}},
+            {"weight": 3, "type_id": "Pickup", "spec": {"type": "Rocket"}},
+            {"weight": 1, "type_id": "Pickup", "spec": {"type": "Health"}}
+          ]
+        }
+      ]
+    },
+    {
+      "wallSpawns": [
+        {"minDistance": 20, "maxDistance": 80, "wallId": 0, "objects": []}
+      ],
+      "segmentType": "Tunnel",
+      "segment": {
+        "length": 1600,
+        "minWidth": 250,
+        "maxWidth": 300,
+        "segmentCount": 8,
+        "startColor": [2, 0, 1, 1],
+        "endColor": [0.1, 1.5, 0, 1],
+        "connectionLength": 200
+      },
+      "internalSpawns": [
+        {
+          "density": 0.0005,
+          "minDistance": 70,
+          "objects": [
+            {"weight": 1, "type_id": "Meteor", "spec": {"size": [35, 35]}}
+          ]
+        },
+        {
+          "density": 0.00005,
+          "minDistance": 50,
+          "objects": [
+            {"weight": 1, "type_id": "Pickup", "spec": {"type": "Fuel"}},
+            {"weight": 5, "type_id": "Pickup", "spec": {"type": "Money"}},
+            {"weight": 1, "type_id": "Pickup", "spec": {"type": "Health"}}
+          ]
+        }
+      ],
+      "id": "MeteorLevel0"
+    },
+    {
+      "wallSpawns": [
+        {"minDistance": 20, "maxDistance": 80, "wallId": 0, "objects": []}
+      ],
+      "segmentType": "Bumps",
+      "segment": {
+        "length": 200,
+        "minWidth": 200,
+        "segmentCount": 8,
+        "startColor": [2, 0, 1, 1],
+        "endColor": [0.1, 1.5, 0, 1],
+        "connectionLength": 200
+      },
+      "internalSpawns": [
+        {
+          "density": 0.0001,
+          "minDistance": 70,
+          "objects": [
+            {"weight": 1, "type_id": "Meteor", "spec": {"size": [30, 30]}}
+          ]
+        },
+        {
+          "density": 0.00001,
+          "minDistance": 50,
+          "objects": [
+            {"weight": 1, "type_id": "Pickup", "spec": {"type": "Fuel"}},
+            {"weight": 5, "type_id": "Pickup", "spec": {"type": "Money"}},
+            {"weight": 2, "type_id": "Pickup", "spec": {"type": "Rocket"}},
+            {"weight": 1, "type_id": "Pickup", "spec": {"type": "Health"}}
+          ]
+        }
+      ],
+      "id": "MeteorLevel3"
+    },
+    {
+      "level": 0,
+      "wallSpawns": [
+        {
+          "type": "fixed",
+          "wallId": 0,
+          "objects": [
+            {
+              "weight": 3,
+              "type_id": "SimpleTurret",
+              "spec": {"pos": [0, 15], "angle": 90, "size": [20, 20]}
+            },
+            {
+              "weight": 1,
+              "type_id": "LaserTurret",
+              "spec": {
+                "simple": true,
+                "range": 150,
+                "pos": [0, 15],
+                "angle": 90,
+                "size": [15, 15]
+              }
+            }
+          ]
+        },
+        {
+          "type": "fixed",
+          "wallId": 1,
+          "objects": [
+            {
+              "weight": 3,
+              "type_id": "SimpleTurret",
+              "spec": {"pos": [0, -15], "angle": -90, "size": [20, 20]}
+            },
+            {
+              "weight": 1,
+              "type_id": "LaserTurret",
+              "spec": {
+                "simple": true,
+                "range": 150,
+                "pos": [0, -15],
+                "angle": -90,
+                "size": [15, 15]
+              }
+            }
+          ]
+        }
+      ],
+      "segmentType": "Bumps",
+      "segment": {
+        "length": 400,
+        "minWidth": 250,
+        "segmentCount": 10,
+        "startColor": [2, 1, 1, 1],
+        "endColor": [0, 1.5, 3, 1],
+        "connectionLength": 300
+      },
+      "internalSpawns": [
+        {
+          "density": 0.00005,
+          "minDistance": 70,
+          "objects": [
+            {
+              "weight": 1,
+              "type_id": "Box",
+              "spec": {"size": [25, 25]},
+              "mods": [{"type": "vel", "min_y": -30, "max_y": 30}]
+            }
+          ]
+        },
+        {
+          "density": 0.00003,
+          "minDistance": 50,
+          "objects": [
+            {"weight": 1, "type_id": "Pickup", "spec": {"type": "Fuel"}},
+            {"weight": 5, "type_id": "Pickup", "spec": {"type": "Money"}},
+            {"weight": 1, "type_id": "Pickup", "spec": {"type": "Health"}}
+          ]
+        }
+      ],
+      "id": "BoxLevel0"
+    },
+    {
+      "level": 1,
+      "wallSpawns": [
+        {"minDistance": 20, "maxDistance": 80, "wallId": 0, "objects": []}
+      ],
+      "segmentType": "Bumps",
+      "segment": {
+        "length": 200,
+        "minWidth": 200,
+        "segmentCount": 8,
+        "startColor": [2, 0, 1, 1],
+        "endColor": [0, 1.5, 3, 1],
+        "connectionLength": 200
+      },
+      "internalSpawns": [
+        {
+          "density": 0.00005,
+          "minDistance": 50,
+          "objects": [
+            {
+              "weight": 1,
+              "type_id": "Box",
+              "spec": {"size": [30, 30]},
+              "mods": [{"type": "vel", "min_y": -30, "max_y": 30}]
+            }
+          ]
+        },
+        {
+          "density": 0.00001,
+          "minDistance": 50,
+          "objects": [
+            {"weight": 1, "type_id": "Pickup", "spec": {"type": "Fuel"}},
+            {"weight": 5, "type_id": "Pickup", "spec": {"type": "Money"}},
+            {"weight": 1, "type_id": "Pickup", "spec": {"type": "Health"}},
+            {"weight": 5, "type_id": "Pickup", "spec": {"type": "Rocket"}}
+          ]
+        }
+      ],
+      "id": "BoxLevel1"
+    },
+    {
+      "wallSpawns": [
+        {"minDistance": 20, "maxDistance": 80, "wallId": 0, "objects": []}
+      ],
+      "segmentType": "Rooms",
+      "segment": {
+        "length": 1000,
+        "minWidth": 450,
+        "maxWidth": 600,
+        "segmentCount": 10,
+        "startColor": [1, 0, 2, 1],
+        "endColor": [2.5, 1.5, 0, 1],
+        "connectionLength": 200
+      },
+      "internalSpawns": [
+        {
+          "density": 0.0003,
+          "minDistance": 120,
+          "objects": [
+            {"weight": 2, "type_id": "SuicideEnemy", "spec": {"max_speed": 100, "start_speed": 0, "wait_time": 1}},
+            {"weight": 30, "type_id": "Box", "spec": {"size": [30, 30]}}
+          ]
+        },{
+          "density": 0.00003,
+          "minDistance": 20,
+          "objects": [
+            {"weight": 1, "type_id": "Pickup", "spec": {"type": "Fuel"}},
+            {"weight": 3, "type_id": "Pickup", "spec": {"type": "Money"}},
+            {"weight": 1, "type_id": "Pickup", "spec": {"type": "Health"}}
+          ]
+        }
+      ],
+      "pursuers": [{"delay": 0, "period": 7, "type_id": "SuicideEnemy"}],
+      "id": "SuicideLevel1"
+    },
+    {
+      "segmentType": "Rooms",
+      "segment": {
+        "length": 1000,
+        "minWidth": 350,
+        "maxWidth": 450,
+        "segmentCount": 10,
+        "startColor": [1, 0.5, 0, 1],
+        "endColor": [0.5, 1.5, 0, 1],
+        "connectionLength": 200
+      },
+      "internalSpawns": [
+        {
+          "density": 0.0005,
+          "minDistance": 120,
+          "objects": [
+            {"weight": 1, "type_id": "Pickup", "spec": {"type": "Fuel"}},
+            {"weight": 2, "type_id": "Pickup", "spec": {"type": "Money"}},
+            {"weight": 3, "type_id": "PatrolEnemy"},
+            {"weight": 1, "type_id": "ElectroWall"},
+            {
+              "weight": 10,
+              "type_id": "Box",
+              "spec": {"size": [50, 50]},
+              "mods": [{"type": "vel", "min_y": -30, "max_y": 30}]
+            }
+          ]
+        }
+      ],
+      "id": "PatrolLevel1"
+    },
+    {
+      "segmentType": "Rooms",
+      "segment": {
+        "length": 1000,
+        "minWidth": 350,
+        "maxWidth": 450,
+        "segmentCount": 10,
+        "startColor": [1, 0.5, 1, 1],
+        "endColor": [0.5, 0.1, 3, 1],
+        "connectionLength": 200
+      },
+      "internalSpawns": [
+        {
+          "density": 0.0005,
+          "minDistance": 120,
+          "objects": [
+            {"weight": 1, "type_id": "PatrolEnemy"},
+            {
+              "weight": 3,
+              "type_id": "Satellite",
+              "spec": {"size": [40, 40]},
+              "mods": [
+                {"type": "size1D", "min": 30, "max": 40},
+                {"type": "angle", "min": 0, "max": 180}
+              ]
+            },
+            {
+              "weight": 12,
+              "type_id": "Box",
+              "spec": {"size": [40, 40], "explodes": false},
+              "mods": [{"type": "size1D", "min": 30, "max": 50}]
+            }
+          ]
+        },
+        {
+          "density": 0.00001,
+          "minDistance": 60,
+          "objects": [
+            {"weight": 1, "type_id": "Pickup", "spec": {"type": "Fuel"}},
+            {"weight": 1, "type_id": "Pickup", "spec": {"type": "Money"}}
+          ]
+        }
+      ],
+      "id": "SatelliteLevel1"
+    },
+    {
+      "segmentType": "Rooms",
+      "segment": {
+        "length": 1200,
+        "minWidth": 250,
+        "maxWidth": 320,
+        "segmentCount": 12,
+        "startColor": [1, 0.5, 0, 1],
+        "endColor": [0.5, 1.5, 0, 1],
+        "connectionLength": 300
+      },
+      "internalSpawns": [
+        {
+          "density": 0.0015,
+          "minDistance": 90,
+          "objects": [
+            {"weight": 1, "type_id": "Pickup", "spec": {"type": "Money"}},
+            {"weight": 1, "type_id": "Pickup", "spec": {"type": "Health"}},
+            {"weight": 1, "type_id": "PatrolEnemy"},
+            {"weight": 11, "type_id": "Meteor", "spec": {"size": [25, 25]}}
+          ]
+        }
+      ],
+      "id": "MeteorLevel2"
+    },
+    {
+      "segmentType": "Rooms",
+      "segment": {
+        "length": 800,
+        "minWidth": 280,
+        "maxWidth": 340,
+        "segmentCount": 12,
+        "startColor": [1, 0.5, 0, 1],
+        "endColor": [0.5, 1.5, 0, 1],
+        "connectionLength": 300
+      },
+      "internalSpawns": [
+        {
+          "density": 0.002,
+          "minDistance": 100,
+          "objects": [
+            {"weight": 1, "type_id": "Pickup", "spec": {"type": "Fuel"}},
+            {"weight": 1, "type_id": "Pickup", "spec": {"type": "Money"}},
+            {"weight": 1, "type_id": "Pickup", "spec": {"type": "Health"}},
+            {"weight": 1, "type_id": "PatrolEnemy"},
+            {"weight": 10, "type_id": "Box", "spec": {"size": [40, 40]}},
+            {
+              "weight": 2,
+              "type_id": "LightningSpinner",
+              "spec": {"size": [20, 20]}
+            }
+          ]
+        }
+      ],
+      "id": "LightningLevel1"
+    },
+    {
+      "segmentType": "Rooms",
+      "segment": {
+        "length": 1000,
+        "minWidth": 300,
+        "maxWidth": 400,
+        "segmentCount": 10,
+        "startColor": [2, 0, 0.2, 1],
+        "endColor": [0, 0, 3, 1],
+        "connectionLength": 200
+      },
+      "internalSpawns": [
+        {
+          "density": 0.0002,
+          "minDistance": 120,
+          "objects": [
+            {"weight": 1, "type_id": "Pickup", "spec": {"type": "Fuel"}},
+            {"weight": 3, "type_id": "Pickup", "spec": {"type": "Money"}},
+            {"weight": 2, "type_id": "Pickup", "spec": {"type": "Rocket"}},
+            {"weight": 11, "type_id": "Box", "spec": {"size": [50, 50]}},
+            {"weight": 6, "type_id": "LaserTurret"}
+          ]
+        }
+      ],
+      "id": "Turrets1"
+    },
+    {
+      "segmentType": "Bumps",
+      "segment": {
+        "length": 400,
+        "minWidth": 250,
+        "maxWidth": 350,
+        "segmentCount": 10,
+        "startColor": [2, 0, 1, 1],
+        "endColor": [0, 1, 2, 1],
+        "connectionLength": 200
+      },
+      "internalSpawns": [
+        {
+          "density": 0.00015,
+          "minDistance": 70,
+          "objects": [
+            {
+              "weight": 11,
+              "type_id": "Meteor",
+              "spec": {"size": [20, 20]},
+              "mods": [
+                {
+                  "type": "vel",
+                  "min_x": -10,
+                  "max_x": 10,
+                  "min_y": -20,
+                  "max_y": 20
+                },
+                {"type": "size1D", "min": 15, "max": 25}
+              ]
+            }
+          ]
+        },
+        {
+          "density": 0.000005,
+          "minDistance": 50,
+          "objects": [
+            {"weight": 1, "type_id": "Pickup", "spec": {"type": "Fuel"}},
+            {"weight": 5, "type_id": "Pickup", "spec": {"type": "Rocket"}}
+          ]
+        }
+      ],
+      "id": "BoxLevel2"
+    },
+    {
+      "segmentType": "Bumps",
+      "segment": {
+        "length": 400,
+        "minWidth": 250,
+        "maxWidth": 350,
+        "segmentCount": 10,
+        "startColor": [2, 0, 1, 1],
+        "endColor": [0, 1, 2, 1],
+        "connectionLength": 200
+      },
+      "internalSpawns": [
+        {
+          "density": 0.00015,
+          "minDistance": 70,
+          "objects": [
+            {
+              "weight": 11,
+              "type_id": "Meteor",
+              "spec": {"size": [40, 40]},
+              "mods": [
+                {
+                  "type": "vel",
+                  "min_x": -10,
+                  "max_x": 10,
+                  "min_y": -20,
+                  "max_y": 20
+                },
+                {"type": "size1D", "min": 25, "max": 45}
+              ]
+            },
+            {
+              "weight": 3,
+              "type_id": "Box",
+              "spec": {"explodes": true, "size": [20, 20]},
+              "mods": [
+                {
+                  "type": "vel",
+                  "min_x": -10,
+                  "max_x": 10,
+                  "min_y": -20,
+                  "max_y": 20
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "density": 0.00001,
+          "minDistance": 50,
+          "objects": [
+            {"weight": 1, "type_id": "Pickup", "spec": {"type": "Fuel"}},
+            {"weight": 5, "type_id": "Pickup", "spec": {"type": "Rocket"}}
+          ]
+        }
+      ],
+      "id": "BoxLevel3"
+    },{
+      "segmentType": "Holes",
+      "segment": {
+        "length": 300,
+        "maxLength": 1600,
+        "holeWidth": 100,
+        "blockWidth": 50,
+        "minWidth": 320,
+        "blockLength": 70,
+        "holeCount": 2,
+        "startColor": [0, 2, 1, 1],
+        "endColor": [2, 0.5, 0.3, 1],
+        "connectionLength": 200
+      },
+      "wallSpawns": [
+        {
+          "type": "fixed",
+          "wallId": 0,
+          "objects": [
+            {
+              "weight": 3,
+              "type_id": "ElectroWall",
+              "spec": {"pos": [0, 0], "angle": 90, "size": [90, 10]}
+            }
+          ]
+        }
+      ],
+     "internalSpawns": [
+        {
+          "density": 0.00005,
+          "minDistance": 100,
+          "objects": [
+            {
+              "weight": 11,
+              "type_id": "Meteor",
+              "spec": {"size": [40, 40]},
+              "mods": [
+                {
+                  "type": "vel",
+                  "min_x": -10,
+                  "max_x": 10,
+                  "min_y": -20,
+                  "max_y": 20
+                },
+                {"type": "size1D", "min": 25, "max": 45}
+              ]
+            },
+            {
+              "weight": 3,
+              "type_id": "Box",
+              "spec": {"explodes": false, "size": [20, 20]},
+              "mods": [
+                {
+                  "type": "vel",
+                  "min_x": 0,
+                  "max_x": 0,
+                  "min_y": -20,
+                  "max_y": 20
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "density": 0.00001,
+          "minDistance": 50,
+          "objects": [
+            {"weight": 1, "type_id": "Pickup", "spec": {"type": "Fuel"}},
+            {"weight": 5, "type_id": "Pickup", "spec": {"type": "Rocket"}}
+          ]
+        }
+      ],
+      "id": "BoxLevel4"
+    },{
+      "segmentType": "Holes",
+      "segment": {
+        "length": 300,
+        "maxLength": 1600,
+        "holeWidth": 100,
+        "blockWidth": 50,
+        "minWidth": 320,
+        "blockLength": 70,
+        "holeCount": 2,
+        "startColor": [0, 2, 1, 1],
+        "endColor": [2, 0.5, 0.3, 1],
+        "connectionLength": 200
+      },
+      "wallSpawns": [
+        {
+          "type": "fixed",
+          "wallId": 0,
+          "objects": [
+            {
+              "type_id": "ElectroWall",
+              "spec": {"angle": 90, "size": [90, 10]}
+            }
+          ]
+        },
+        {
+          "type": "fixed",
+          "wallId": 1,
+          "objects": [
+            {
+              "type_id": "LightningWall",
+              "spec": {"angle": 90, "size": [90, 10]}
+            }
+          ]
+        }
+      ],
+     "internalSpawns": [
+        {
+          "density": 0.00005,
+          "minDistance": 100,
+          "objects": [
+            {
+              "weight": 11,
+              "type_id": "Meteor",
+              "spec": {"size": [40, 40]},
+              "mods": [
+                {
+                  "type": "vel",
+                  "min_x": -10,
+                  "max_x": 10,
+                  "min_y": -20,
+                  "max_y": 20
+                },
+                {"type": "size1D", "min": 25, "max": 45}
+              ]
+            },
+            {
+              "weight": 3,
+              "type_id": "Box",
+              "spec": {"explodes": false, "size": [30, 30]},
+              "mods": [
+                {
+                  "type": "vel",
+                  "min_x": 0,
+                  "max_x": 0,
+                  "min_y": -20,
+                  "max_y": 20
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "density": 0.00001,
+          "minDistance": 50,
+          "objects": [
+            {"weight": 1, "type_id": "Pickup", "spec": {"type": "Fuel"}},
+            {"weight": 5, "type_id": "Pickup", "spec": {"type": "Rocket"}}
+          ]
+        }
+      ],
+      "id": "HolesLevel2"
+    }
+  ]
+}

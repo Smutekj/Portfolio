@@ -1,0 +1,22 @@
+{
+    "Walls":
+    {
+        "StartIn": [1,0.5,0,1],
+        "EndIn": [1,0.5,0,1],
+        "StartOut": [1,0.5,0,1],    
+        "EndOut": [1,0.5,0,1]  
+    },
+    "Bullets":
+    {
+        "Patrol": []
+    },
+    "Meteors":
+    {
+
+    },
+    "UI":
+    {
+        "TopBar": [],
+        "Buttons": []
+    }
+}
