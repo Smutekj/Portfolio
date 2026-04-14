@@ -1,0 +1,57 @@
+
+    "UIRocket": {
+      "options": {
+        "wrap_x": 1,
+        "wrap_y": 1
+      },
+      "path": "Textures/UI/UIRocket.png"
+    },
+    "UIBackgroundTurn": {
+      "options": {
+        "wrap_x": 1,
+        "wrap_y": 1
+      },
+      "path": "Textures/UI/TurnBackground.png"
+    },
+    "UIBoost": {
+      "options": {
+        "wrap_x": 1,
+        "wrap_y": 1
+      },
+      "path": "Textures/UI/BoostButton.png"
+    },
+    "UIBreak": {
+      "options": {
+        "wrap_x": 1,
+        "wrap_y": 1
+      },
+      "path": "Textures/UI/BreakButton.png"
+    },
+    "UIBar": {
+      "options": {
+        "wrap_x": 1,
+        "wrap_y": 1
+      },
+      "path": "Textures/UI/UIBar.png"
+    },
+    "UITopBar": {
+      "options": {
+        "wrap_x": 1,
+        "wrap_y": 1
+      },
+      "path": "Textures/UI/TopBar.png"
+    },
+    "UITurn": {
+      "options": {
+        "wrap_x": 1,
+        "wrap_y": 1
+      },
+      "path": "Textures/UI/ArrowClockwise.png"
+    },
+    "UITurnActive": {
+      "options": {
+        "wrap_x": 1,
+        "wrap_y": 1
+      },
+      "path": "Textures/UI/ArrowClockwiseActive.png"
+    },
