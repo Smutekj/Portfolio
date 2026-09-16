@@ -1,5 +1,5 @@
 {
-  "testLevels": [],
+  "testLevels": ["HolesLevel3"],
   "levels": [
     {
       "id": "MeteorLevel1",
@@ -675,6 +675,88 @@
         }
       ],
       "id": "HolesLevel2"
+    },{
+      "segmentType": "Holes",
+      "segment": {
+        "length": 240,
+        "maxLength": 1600,
+        "holeWidth": 70,
+        "blockWidth": 70,
+        "minWidth": 300,
+        "blockLength": 70,
+        "holeCount": 2,
+        "startColor": [2, 0, 1, 1],
+        "endColor": [0.2, 1.5, 0.8, 1],
+        "connectionLength": 300
+      },
+      "wallSpawns": [
+        {
+          "type": "fixed",
+          "wallId": 0,
+          "objects": [
+            {
+              "type_id": "ElectroWall",
+              "spec": {"angle": 90, "size": [70, 10]}
+            }
+          ]
+        },
+        {
+          "type": "fixed",
+          "wallId": 1,
+          "objects": [
+            {
+              "type_id": "BlackHole",
+              "spec": {"size": [30, 30]}
+            }
+          ]
+        }
+      ],
+     "internalSpawns": [
+        {
+          "density": 0.00008,
+          "minDistance": 100,
+          "objects": [
+            {
+              "weight": 11,
+              "type_id": "Meteor",
+              "spec": {"size": [40, 40]},
+              "mods": [
+                {
+                  "type": "vel",
+                  "min_x": -10,
+                  "max_x": 10,
+                  "min_y": -20,
+                  "max_y": 20
+                },
+                {"type": "size1D", "min": 25, "max": 45}
+              ]
+            },
+            {
+              "weight": 3,
+              "type_id": "Box",
+              "spec": {"explodes": false, "size": [30, 30]},
+              "mods": [
+                {
+                  "type": "vel",
+                  "min_x": 0,
+                  "max_x": 0,
+                  "min_y": -20,
+                  "max_y": 20
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "density": 0.00001,
+          "minDistance": 50,
+          "objects": [
+            {"weight": 1, "type_id": "Pickup", "spec": {"type": "Fuel"}},
+            {"weight": 5, "type_id": "Pickup", "spec": {"type": "Rocket"}}
+          ]
+        }
+      ],
+      "id": "HolesLevel3"
     }
   ]
 }
