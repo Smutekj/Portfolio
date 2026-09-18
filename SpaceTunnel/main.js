@@ -885,33 +885,7 @@ var UTF8Decoder = typeof TextDecoder != "undefined" ? new TextDecoder : undefine
 
 var ___assert_fail = (condition, filename, line, func) => abort(`Assertion failed: ${UTF8ToString(condition)}, at: ` + [ filename ? UTF8ToString(filename) : "unknown filename", line, func ? UTF8ToString(func) : "unknown function" ]);
 
-var exceptionCaught = [];
-
-var uncaughtExceptionCount = 0;
-
-var ___cxa_begin_catch = ptr => {
-  var info = new ExceptionInfo(ptr);
-  if (!info.get_caught()) {
-    info.set_caught(true);
-    uncaughtExceptionCount--;
-  }
-  info.set_rethrown(false);
-  exceptionCaught.push(info);
-  ___cxa_increment_exception_refcount(ptr);
-  return ___cxa_get_exception_ptr(ptr);
-};
-
-var exceptionLast = 0;
-
-var ___cxa_end_catch = () => {
-  // Clear state flag.
-  _setThrew(0, 0);
-  assert(exceptionCaught.length > 0);
-  // Call destructor if one is registered then clear it.
-  var info = exceptionCaught.pop();
-  ___cxa_decrement_exception_refcount(info.excPtr);
-  exceptionLast = 0;
-};
+var ___call_sighandler = (fp, sig) => (a1 => dynCall_vi(fp, a1))(sig);
 
 class ExceptionInfo {
   // excPtr - Thrown object pointer to wrap. Metadata pointer is calculated from it.
@@ -959,63 +933,9 @@ class ExceptionInfo {
   }
 }
 
-var setTempRet0 = val => __emscripten_tempret_set(val);
+var exceptionLast = 0;
 
-var findMatchingCatch = args => {
-  var thrown = exceptionLast?.excPtr;
-  if (!thrown) {
-    // just pass through the null ptr
-    setTempRet0(0);
-    return 0;
-  }
-  var info = new ExceptionInfo(thrown);
-  info.set_adjusted_ptr(thrown);
-  var thrownType = info.get_type();
-  if (!thrownType) {
-    // just pass through the thrown ptr
-    setTempRet0(0);
-    return thrown;
-  }
-  // can_catch receives a **, add indirection
-  // The different catch blocks are denoted by different types.
-  // Due to inheritance, those types may not precisely match the
-  // type of the thrown object. Find one which matches, and
-  // return the type of the catch block which should be called.
-  for (var caughtType of args) {
-    if (caughtType === 0 || caughtType === thrownType) {
-      // Catch all clause matched or exactly the same type is caught
-      break;
-    }
-    var adjusted_ptr_addr = info.ptr + 16;
-    if (___cxa_can_catch(caughtType, thrownType, adjusted_ptr_addr)) {
-      setTempRet0(caughtType);
-      return thrown;
-    }
-  }
-  setTempRet0(thrownType);
-  return thrown;
-};
-
-var ___cxa_find_matching_catch_2 = () => findMatchingCatch([]);
-
-var ___cxa_find_matching_catch_3 = arg0 => findMatchingCatch([ arg0 ]);
-
-var ___cxa_rethrow = () => {
-  var info = exceptionCaught.pop();
-  if (!info) {
-    abort("no exception to throw");
-  }
-  var ptr = info.excPtr;
-  if (!info.get_rethrown()) {
-    // Only pop if the corresponding push was through rethrow_primary_exception
-    exceptionCaught.push(info);
-    info.set_rethrown(true);
-    info.set_caught(false);
-    uncaughtExceptionCount++;
-  }
-  exceptionLast = new CppException(ptr);
-  throw exceptionLast;
-};
+var uncaughtExceptionCount = 0;
 
 var ___cxa_throw = (ptr, type, destructor) => {
   var info = new ExceptionInfo(ptr);
@@ -1027,23 +947,6 @@ var ___cxa_throw = (ptr, type, destructor) => {
 };
 
 var ___cxa_uncaught_exceptions = () => uncaughtExceptionCount;
-
-var ___resumeException = ptr => {
-  if (!exceptionLast) {
-    exceptionLast = new CppException(ptr);
-  }
-  throw exceptionLast;
-};
-
-/** @suppress {duplicate } */ var syscallGetVarargI = () => {
-  assert(SYSCALLS.varargs != undefined);
-  // the `+` prepended here is necessary to convince the JSCompiler that varargs is indeed a number.
-  var ret = HEAP32[((+SYSCALLS.varargs) >> 2)];
-  SYSCALLS.varargs += 4;
-  return ret;
-};
-
-var syscallGetVarargP = syscallGetVarargI;
 
 var PATH = {
   isAbs: path => path.charAt(0) === "/",
@@ -3711,6 +3614,87 @@ var SYSCALLS = {
   }
 };
 
+var ___syscall__newselect = function(nfds, readfds, writefds, exceptfds, timeout) {
+  try {
+    // readfds are supported,
+    // writefds checks socket open status
+    // exceptfds are supported, although on web, such exceptional conditions never arise in web sockets
+    //                          and so the exceptfds list will always return empty.
+    // timeout is supported, although on SOCKFS and PIPEFS these are ignored and always treated as 0 - fully async
+    assert(nfds <= 64, "nfds must be less than or equal to 64");
+    // fd sets have 64 bits // TODO: this could be 1024 based on current musl headers
+    var total = 0;
+    var srcReadLow = (readfds ? HEAP32[((readfds) >> 2)] : 0), srcReadHigh = (readfds ? HEAP32[(((readfds) + (4)) >> 2)] : 0);
+    var srcWriteLow = (writefds ? HEAP32[((writefds) >> 2)] : 0), srcWriteHigh = (writefds ? HEAP32[(((writefds) + (4)) >> 2)] : 0);
+    var srcExceptLow = (exceptfds ? HEAP32[((exceptfds) >> 2)] : 0), srcExceptHigh = (exceptfds ? HEAP32[(((exceptfds) + (4)) >> 2)] : 0);
+    var dstReadLow = 0, dstReadHigh = 0;
+    var dstWriteLow = 0, dstWriteHigh = 0;
+    var dstExceptLow = 0, dstExceptHigh = 0;
+    var allLow = (readfds ? HEAP32[((readfds) >> 2)] : 0) | (writefds ? HEAP32[((writefds) >> 2)] : 0) | (exceptfds ? HEAP32[((exceptfds) >> 2)] : 0);
+    var allHigh = (readfds ? HEAP32[(((readfds) + (4)) >> 2)] : 0) | (writefds ? HEAP32[(((writefds) + (4)) >> 2)] : 0) | (exceptfds ? HEAP32[(((exceptfds) + (4)) >> 2)] : 0);
+    var check = (fd, low, high, val) => fd < 32 ? (low & val) : (high & val);
+    for (var fd = 0; fd < nfds; fd++) {
+      var mask = 1 << (fd % 32);
+      if (!(check(fd, allLow, allHigh, mask))) {
+        continue;
+      }
+      var stream = SYSCALLS.getStreamFromFD(fd);
+      var flags = SYSCALLS.DEFAULT_POLLMASK;
+      if (stream.stream_ops.poll) {
+        var timeoutInMillis = -1;
+        if (timeout) {
+          // select(2) is declared to accept "struct timeval { time_t tv_sec; suseconds_t tv_usec; }".
+          // However, musl passes the two values to the syscall as an array of long values.
+          // Note that sizeof(time_t) != sizeof(long) in wasm32. The former is 8, while the latter is 4.
+          // This means using "C_STRUCTS.timeval.tv_usec" leads to a wrong offset.
+          // So, instead, we use POINTER_SIZE.
+          var tv_sec = (readfds ? HEAP32[((timeout) >> 2)] : 0), tv_usec = (readfds ? HEAP32[(((timeout) + (4)) >> 2)] : 0);
+          timeoutInMillis = (tv_sec + tv_usec / 1e6) * 1e3;
+        }
+        flags = stream.stream_ops.poll(stream, timeoutInMillis);
+      }
+      if ((flags & 1) && check(fd, srcReadLow, srcReadHigh, mask)) {
+        fd < 32 ? (dstReadLow = dstReadLow | mask) : (dstReadHigh = dstReadHigh | mask);
+        total++;
+      }
+      if ((flags & 4) && check(fd, srcWriteLow, srcWriteHigh, mask)) {
+        fd < 32 ? (dstWriteLow = dstWriteLow | mask) : (dstWriteHigh = dstWriteHigh | mask);
+        total++;
+      }
+      if ((flags & 2) && check(fd, srcExceptLow, srcExceptHigh, mask)) {
+        fd < 32 ? (dstExceptLow = dstExceptLow | mask) : (dstExceptHigh = dstExceptHigh | mask);
+        total++;
+      }
+    }
+    if (readfds) {
+      HEAP32[((readfds) >> 2)] = dstReadLow;
+      HEAP32[(((readfds) + (4)) >> 2)] = dstReadHigh;
+    }
+    if (writefds) {
+      HEAP32[((writefds) >> 2)] = dstWriteLow;
+      HEAP32[(((writefds) + (4)) >> 2)] = dstWriteHigh;
+    }
+    if (exceptfds) {
+      HEAP32[((exceptfds) >> 2)] = dstExceptLow;
+      HEAP32[(((exceptfds) + (4)) >> 2)] = dstExceptHigh;
+    }
+    return total;
+  } catch (e) {
+    if (typeof FS == "undefined" || !(e.name === "ErrnoError")) throw e;
+    return -e.errno;
+  }
+};
+
+/** @suppress {duplicate } */ var syscallGetVarargI = () => {
+  assert(SYSCALLS.varargs != undefined);
+  // the `+` prepended here is necessary to convince the JSCompiler that varargs is indeed a number.
+  var ret = HEAP32[((+SYSCALLS.varargs) >> 2)];
+  SYSCALLS.varargs += 4;
+  return ret;
+};
+
+var syscallGetVarargP = syscallGetVarargI;
+
 function ___syscall_fcntl64(fd, cmd, varargs) {
   SYSCALLS.varargs = varargs;
   try {
@@ -3964,6 +3948,13 @@ var __emscripten_fs_load_embedded_files = ptr => {
   } while (HEAPU32[((ptr) >> 2)]);
 };
 
+var runtimeKeepaliveCounter = 0;
+
+var __emscripten_runtime_keepalive_clear = () => {
+  noExitRuntime = false;
+  runtimeKeepaliveCounter = 0;
+};
+
 var __emscripten_throw_longjmp = () => {
   throw new EmscriptenSjLj;
 };
@@ -4004,6 +3995,96 @@ function __munmap_js(addr, len, prot, flags, fd, offset) {
     return -e.errno;
   }
 }
+
+var timers = {};
+
+var handleException = e => {
+  // Certain exception types we do not treat as errors since they are used for
+  // internal control flow.
+  // 1. ExitStatus, which is thrown by exit()
+  // 2. "unwind", which is thrown by emscripten_unwind_to_js_event_loop() and others
+  //    that wish to return to JS event loop.
+  if (e instanceof ExitStatus || e == "unwind") {
+    return EXITSTATUS;
+  }
+  checkStackCookie();
+  if (e instanceof WebAssembly.RuntimeError) {
+    if (_emscripten_stack_get_current() <= 0) {
+      err("Stack overflow detected.  You can try increasing -sSTACK_SIZE (currently set to 1048576)");
+    }
+  }
+  quit_(1, e);
+};
+
+var keepRuntimeAlive = () => noExitRuntime || runtimeKeepaliveCounter > 0;
+
+var _proc_exit = code => {
+  EXITSTATUS = code;
+  if (!keepRuntimeAlive()) {
+    Module["onExit"]?.(code);
+    ABORT = true;
+  }
+  quit_(code, new ExitStatus(code));
+};
+
+/** @suppress {duplicate } */ /** @param {boolean|number=} implicit */ var exitJS = (status, implicit) => {
+  EXITSTATUS = status;
+  checkUnflushedContent();
+  // if exit() was called explicitly, warn the user if the runtime isn't actually being shut down
+  if (keepRuntimeAlive() && !implicit) {
+    var msg = `program exited (with status: ${status}), but keepRuntimeAlive() is set (counter=${runtimeKeepaliveCounter}) due to an async operation, so halting execution but not exiting the runtime or preventing further async execution (you can use emscripten_force_exit, if you want to force a true shutdown)`;
+    err(msg);
+  }
+  _proc_exit(status);
+};
+
+var _exit = exitJS;
+
+var maybeExit = () => {
+  if (!keepRuntimeAlive()) {
+    try {
+      _exit(EXITSTATUS);
+    } catch (e) {
+      handleException(e);
+    }
+  }
+};
+
+var callUserCallback = func => {
+  if (ABORT) {
+    err("user callback triggered after runtime exited or application aborted.  Ignoring.");
+    return;
+  }
+  try {
+    func();
+    maybeExit();
+  } catch (e) {
+    handleException(e);
+  }
+};
+
+var _emscripten_get_now = () => performance.now();
+
+var __setitimer_js = (which, timeout_ms) => {
+  // First, clear any existing timer.
+  if (timers[which]) {
+    clearTimeout(timers[which].id);
+    delete timers[which];
+  }
+  // A timeout of zero simply cancels the current timeout so we have nothing
+  // more to do.
+  if (!timeout_ms) return 0;
+  var id = setTimeout(() => {
+    assert(which in timers);
+    delete timers[which];
+    callUserCallback(() => __emscripten_timeout(which, _emscripten_get_now()));
+  }, timeout_ms);
+  timers[which] = {
+    id,
+    timeout_ms
+  };
+  return 0;
+};
 
 var stringToUTF8 = (str, outPtr, maxBytesToWrite) => {
   assert(typeof maxBytesToWrite == "number", "stringToUTF8(str, outPtr, maxBytesToWrite) is missing the third parameter that specifies the length of the output buffer!");
@@ -4056,8 +4137,6 @@ var __tzset_js = (timezone, daylight, std_name, dst_name) => {
   }
 };
 
-var _emscripten_get_now = () => performance.now();
-
 var _emscripten_date_now = () => Date.now();
 
 var nowIsMonotonic = 1;
@@ -4083,73 +4162,6 @@ function _clock_time_get(clk_id, ignored_precision, ptime) {
   HEAP64[((ptime) >> 3)] = BigInt(nsec);
   return 0;
 }
-
-var handleException = e => {
-  // Certain exception types we do not treat as errors since they are used for
-  // internal control flow.
-  // 1. ExitStatus, which is thrown by exit()
-  // 2. "unwind", which is thrown by emscripten_unwind_to_js_event_loop() and others
-  //    that wish to return to JS event loop.
-  if (e instanceof ExitStatus || e == "unwind") {
-    return EXITSTATUS;
-  }
-  checkStackCookie();
-  if (e instanceof WebAssembly.RuntimeError) {
-    if (_emscripten_stack_get_current() <= 0) {
-      err("Stack overflow detected.  You can try increasing -sSTACK_SIZE (currently set to 65536)");
-    }
-  }
-  quit_(1, e);
-};
-
-var runtimeKeepaliveCounter = 0;
-
-var keepRuntimeAlive = () => noExitRuntime || runtimeKeepaliveCounter > 0;
-
-var _proc_exit = code => {
-  EXITSTATUS = code;
-  if (!keepRuntimeAlive()) {
-    Module["onExit"]?.(code);
-    ABORT = true;
-  }
-  quit_(code, new ExitStatus(code));
-};
-
-/** @suppress {duplicate } */ /** @param {boolean|number=} implicit */ var exitJS = (status, implicit) => {
-  EXITSTATUS = status;
-  checkUnflushedContent();
-  // if exit() was called explicitly, warn the user if the runtime isn't actually being shut down
-  if (keepRuntimeAlive() && !implicit) {
-    var msg = `program exited (with status: ${status}), but keepRuntimeAlive() is set (counter=${runtimeKeepaliveCounter}) due to an async operation, so halting execution but not exiting the runtime or preventing further async execution (you can use emscripten_force_exit, if you want to force a true shutdown)`;
-    err(msg);
-  }
-  _proc_exit(status);
-};
-
-var _exit = exitJS;
-
-var maybeExit = () => {
-  if (!keepRuntimeAlive()) {
-    try {
-      _exit(EXITSTATUS);
-    } catch (e) {
-      handleException(e);
-    }
-  }
-};
-
-var callUserCallback = func => {
-  if (ABORT) {
-    err("user callback triggered after runtime exited or application aborted.  Ignoring.");
-    return;
-  }
-  try {
-    func();
-    maybeExit();
-  } catch (e) {
-    handleException(e);
-  }
-};
 
 /** @param {number=} timeout */ var safeSetTimeout = (func, timeout) => setTimeout(() => {
   callUserCallback(func);
@@ -9614,6 +9626,11 @@ var _emscripten_set_keypress_callback_on_thread = (target, userData, useCapture,
 
 var _emscripten_set_keyup_callback_on_thread = (target, userData, useCapture, callbackfunc, targetThread) => registerKeyEventCallback(target, userData, useCapture, callbackfunc, 3, "keyup", targetThread);
 
+var _emscripten_set_main_loop_arg = (func, arg, fps, simulateInfiniteLoop) => {
+  var iterFunc = () => (a1 => dynCall_vi(func, a1))(arg);
+  setMainLoop(iterFunc, fps, simulateInfiniteLoop, arg);
+};
+
 var fillMouseEventData = (eventStruct, e, target) => {
   assert(eventStruct % 4 == 0);
   HEAPF64[((eventStruct) >> 3)] = e.timeStamp;
@@ -10961,11 +10978,11 @@ Module["FS_createDataFile"] = FS_createDataFile;
 
 Module["FS_createLazyFile"] = FS_createLazyFile;
 
-var missingLibrarySymbols = [ "writeI53ToI64Clamped", "writeI53ToI64Signaling", "writeI53ToU64Clamped", "writeI53ToU64Signaling", "convertI32PairToI53", "convertI32PairToI53Checked", "convertU32PairToI53", "getTempRet0", "withStackSave", "inetPton4", "inetNtop4", "inetPton6", "inetNtop6", "readSockaddr", "writeSockaddr", "emscriptenLog", "getDynCaller", "asmjsMangle", "getNativeTypeSize", "addOnInit", "addOnPostCtor", "addOnPreMain", "STACK_SIZE", "STACK_ALIGN", "POINTER_SIZE", "ASSERTIONS", "cwrap", "uleb128Encode", "generateFuncType", "convertJsFunctionToWasm", "getEmptyTableSlot", "updateTableMap", "getFunctionAddress", "addFunction", "removeFunction", "reallyNegative", "unSign", "strLen", "reSign", "formatString", "intArrayToString", "AsciiToString", "stringToAscii", "UTF16ToString", "stringToUTF16", "lengthBytesUTF16", "UTF32ToString", "stringToUTF32", "lengthBytesUTF32", "fillDeviceOrientationEventData", "registerDeviceOrientationEventCallback", "fillDeviceMotionEventData", "registerDeviceMotionEventCallback", "screenOrientation", "fillOrientationChangeEventData", "registerOrientationChangeEventCallback", "hideEverythingExceptGivenElement", "restoreHiddenElements", "softFullscreenResizeWebGLRenderTarget", "registerPointerlockErrorEventCallback", "fillBatteryEventData", "battery", "registerBatteryEventCallback", "jsStackTrace", "getCallstack", "convertPCtoSourceLocation", "wasiRightsToMuslOFlags", "wasiOFlagsToMuslOFlags", "setImmediateWrapped", "safeRequestAnimationFrame", "clearImmediateWrapped", "registerPostMainLoop", "getPromise", "makePromise", "idsToPromises", "makePromiseCallback", "Browser_asyncPrepareDataCounter", "isLeapYear", "ydayFromDate", "arraySum", "addDays", "getSocketFromFD", "getSocketAddress", "FS_mkdirTree", "_setNetworkCallback", "writeGLArray", "registerWebGlEventCallback", "ALLOC_NORMAL", "ALLOC_STACK", "allocate", "writeStringToMemory", "writeAsciiToMemory", "demangle", "stackTrace" ];
+var missingLibrarySymbols = [ "writeI53ToI64Clamped", "writeI53ToI64Signaling", "writeI53ToU64Clamped", "writeI53ToU64Signaling", "convertI32PairToI53", "convertI32PairToI53Checked", "convertU32PairToI53", "getTempRet0", "setTempRet0", "withStackSave", "inetPton4", "inetNtop4", "inetPton6", "inetNtop6", "readSockaddr", "writeSockaddr", "emscriptenLog", "getDynCaller", "asmjsMangle", "getNativeTypeSize", "addOnInit", "addOnPostCtor", "addOnPreMain", "STACK_SIZE", "STACK_ALIGN", "POINTER_SIZE", "ASSERTIONS", "cwrap", "uleb128Encode", "generateFuncType", "convertJsFunctionToWasm", "getEmptyTableSlot", "updateTableMap", "getFunctionAddress", "addFunction", "removeFunction", "reallyNegative", "unSign", "strLen", "reSign", "formatString", "intArrayToString", "AsciiToString", "stringToAscii", "UTF16ToString", "stringToUTF16", "lengthBytesUTF16", "UTF32ToString", "stringToUTF32", "lengthBytesUTF32", "fillDeviceOrientationEventData", "registerDeviceOrientationEventCallback", "fillDeviceMotionEventData", "registerDeviceMotionEventCallback", "screenOrientation", "fillOrientationChangeEventData", "registerOrientationChangeEventCallback", "hideEverythingExceptGivenElement", "restoreHiddenElements", "softFullscreenResizeWebGLRenderTarget", "registerPointerlockErrorEventCallback", "fillBatteryEventData", "battery", "registerBatteryEventCallback", "jsStackTrace", "getCallstack", "convertPCtoSourceLocation", "wasiRightsToMuslOFlags", "wasiOFlagsToMuslOFlags", "setImmediateWrapped", "safeRequestAnimationFrame", "clearImmediateWrapped", "registerPostMainLoop", "getPromise", "makePromise", "idsToPromises", "makePromiseCallback", "findMatchingCatch", "Browser_asyncPrepareDataCounter", "isLeapYear", "ydayFromDate", "arraySum", "addDays", "getSocketFromFD", "getSocketAddress", "FS_mkdirTree", "_setNetworkCallback", "writeGLArray", "registerWebGlEventCallback", "ALLOC_NORMAL", "ALLOC_STACK", "allocate", "writeStringToMemory", "writeAsciiToMemory", "demangle", "stackTrace" ];
 
 missingLibrarySymbols.forEach(missingLibrarySymbol);
 
-var unexportedSymbols = [ "run", "out", "err", "abort", "wasmMemory", "wasmExports", "HEAPF32", "HEAPF64", "HEAP8", "HEAPU8", "HEAP16", "HEAPU16", "HEAP32", "HEAPU32", "HEAP64", "HEAPU64", "writeStackCookie", "checkStackCookie", "writeI53ToI64", "readI53FromI64", "readI53FromU64", "INT53_MAX", "INT53_MIN", "bigintToI53Checked", "stackSave", "stackRestore", "stackAlloc", "setTempRet0", "ptrToString", "zeroMemory", "exitJS", "getHeapMax", "growMemory", "ENV", "ERRNO_CODES", "strError", "DNS", "Protocols", "Sockets", "timers", "warnOnce", "readEmAsmArgsArray", "readEmAsmArgs", "runEmAsmFunction", "runMainThreadEmAsm", "jstoi_q", "getExecutableName", "autoResumeAudioContext", "dynCallLegacy", "dynCall", "handleException", "keepRuntimeAlive", "runtimeKeepalivePush", "runtimeKeepalivePop", "callUserCallback", "maybeExit", "asyncLoad", "alignMemory", "mmapAlloc", "HandleAllocator", "wasmTable", "getUniqueRunDependency", "noExitRuntime", "addOnPreRun", "addOnExit", "addOnPostRun", "sigToWasmTypes", "freeTableIndexes", "functionsInTableMap", "setValue", "getValue", "PATH", "PATH_FS", "UTF8Decoder", "UTF8ArrayToString", "UTF8ToString", "stringToUTF8Array", "stringToUTF8", "lengthBytesUTF8", "intArrayFromString", "UTF16Decoder", "stringToNewUTF8", "stringToUTF8OnStack", "writeArrayToMemory", "JSEvents", "registerKeyEventCallback", "specialHTMLTargets", "maybeCStringToJsString", "findEventTarget", "findCanvasEventTarget", "getBoundingClientRect", "fillMouseEventData", "registerMouseEventCallback", "registerWheelEventCallback", "registerUiEventCallback", "registerFocusEventCallback", "fillFullscreenChangeEventData", "registerFullscreenChangeEventCallback", "JSEvents_requestFullscreen", "JSEvents_resizeCanvasForFullscreen", "registerRestoreOldStyle", "setLetterbox", "currentFullscreenStrategy", "restoreOldWindowedStyle", "doRequestFullscreen", "fillPointerlockChangeEventData", "registerPointerlockChangeEventCallback", "requestPointerLock", "fillVisibilityChangeEventData", "registerVisibilityChangeEventCallback", "registerTouchEventCallback", "fillGamepadEventData", "registerGamepadEventCallback", "registerBeforeUnloadEventCallback", "setCanvasElementSize", "getCanvasElementSize", "UNWIND_CACHE", "ExitStatus", "getEnvStrings", "checkWasiClock", "doReadv", "doWritev", "initRandomFill", "randomFill", "safeSetTimeout", "emSetImmediate", "emClearImmediate_deps", "emClearImmediate", "registerPreMainLoop", "promiseMap", "uncaughtExceptionCount", "exceptionLast", "exceptionCaught", "ExceptionInfo", "findMatchingCatch", "getExceptionMessageCommon", "Browser", "requestFullScreen", "setCanvasSize", "getUserMedia", "getPreloadedImageData__data", "wget", "MONTH_DAYS_REGULAR", "MONTH_DAYS_LEAP", "MONTH_DAYS_REGULAR_CUMULATIVE", "MONTH_DAYS_LEAP_CUMULATIVE", "SYSCALLS", "preloadPlugins", "FS_modeStringToFlags", "FS_getMode", "FS_stdin_getChar_buffer", "FS_stdin_getChar", "FS_readFile", "FS", "FS_root", "FS_mounts", "FS_devices", "FS_streams", "FS_nextInode", "FS_nameTable", "FS_currentPath", "FS_initialized", "FS_ignorePermissions", "FS_filesystems", "FS_syncFSRequests", "FS_readFiles", "FS_lookupPath", "FS_getPath", "FS_hashName", "FS_hashAddNode", "FS_hashRemoveNode", "FS_lookupNode", "FS_createNode", "FS_destroyNode", "FS_isRoot", "FS_isMountpoint", "FS_isFile", "FS_isDir", "FS_isLink", "FS_isChrdev", "FS_isBlkdev", "FS_isFIFO", "FS_isSocket", "FS_flagsToPermissionString", "FS_nodePermissions", "FS_mayLookup", "FS_mayCreate", "FS_mayDelete", "FS_mayOpen", "FS_checkOpExists", "FS_nextfd", "FS_getStreamChecked", "FS_getStream", "FS_createStream", "FS_closeStream", "FS_dupStream", "FS_doSetAttr", "FS_chrdev_stream_ops", "FS_major", "FS_minor", "FS_makedev", "FS_registerDevice", "FS_getDevice", "FS_getMounts", "FS_syncfs", "FS_mount", "FS_unmount", "FS_lookup", "FS_mknod", "FS_statfs", "FS_statfsStream", "FS_statfsNode", "FS_create", "FS_mkdir", "FS_mkdev", "FS_symlink", "FS_rename", "FS_rmdir", "FS_readdir", "FS_readlink", "FS_stat", "FS_fstat", "FS_lstat", "FS_doChmod", "FS_chmod", "FS_lchmod", "FS_fchmod", "FS_doChown", "FS_chown", "FS_lchown", "FS_fchown", "FS_doTruncate", "FS_truncate", "FS_ftruncate", "FS_utime", "FS_open", "FS_close", "FS_isClosed", "FS_llseek", "FS_read", "FS_write", "FS_mmap", "FS_msync", "FS_ioctl", "FS_writeFile", "FS_cwd", "FS_chdir", "FS_createDefaultDirectories", "FS_createDefaultDevices", "FS_createSpecialDirectories", "FS_createStandardStreams", "FS_staticInit", "FS_init", "FS_quit", "FS_findObject", "FS_analyzePath", "FS_createFile", "FS_forceLoadFile", "FS_absolutePath", "FS_createFolder", "FS_createLink", "FS_joinPath", "FS_mmapAlloc", "FS_standardizePath", "MEMFS", "TTY", "PIPEFS", "SOCKFS", "tempFixedLengthArray", "miniTempWebGLFloatBuffers", "miniTempWebGLIntBuffers", "heapObjectForWebGLType", "toTypedArrayIndex", "webgl_enable_WEBGL_multi_draw", "webgl_enable_EXT_polygon_offset_clamp", "webgl_enable_EXT_clip_control", "webgl_enable_WEBGL_polygon_mode", "GL", "emscriptenWebGLGet", "computeUnpackAlignedImageSize", "colorChannelsInGlTextureFormat", "emscriptenWebGLGetTexPixelData", "emscriptenWebGLGetUniform", "webglGetUniformLocation", "webglPrepareUniformLocationsBeforeFirstUse", "webglGetLeftBracePos", "emscriptenWebGLGetVertexAttrib", "__glGetActiveAttribOrUniform", "emscriptenWebGLGetBufferBinding", "emscriptenWebGLValidateMapBufferTarget", "AL", "GLUT", "EGL", "GLEW", "IDBStore", "runAndAbortIfError", "Asyncify", "Fibers", "emscriptenWebGLGetIndexed", "webgl_enable_WEBGL_draw_instanced_base_vertex_base_instance", "webgl_enable_WEBGL_multi_draw_instanced_base_vertex_base_instance", "allocateUTF8", "allocateUTF8OnStack", "print", "printErr", "jstoi_s", "Fetch", "fetchDeleteCachedData", "fetchLoadCachedData", "fetchCacheData", "fetchXHR" ];
+var unexportedSymbols = [ "run", "out", "err", "abort", "wasmMemory", "wasmExports", "HEAPF32", "HEAPF64", "HEAP8", "HEAPU8", "HEAP16", "HEAPU16", "HEAP32", "HEAPU32", "HEAP64", "HEAPU64", "writeStackCookie", "checkStackCookie", "writeI53ToI64", "readI53FromI64", "readI53FromU64", "INT53_MAX", "INT53_MIN", "bigintToI53Checked", "stackSave", "stackRestore", "stackAlloc", "ptrToString", "zeroMemory", "exitJS", "getHeapMax", "growMemory", "ENV", "ERRNO_CODES", "strError", "DNS", "Protocols", "Sockets", "timers", "warnOnce", "readEmAsmArgsArray", "readEmAsmArgs", "runEmAsmFunction", "runMainThreadEmAsm", "jstoi_q", "getExecutableName", "autoResumeAudioContext", "dynCallLegacy", "dynCall", "handleException", "keepRuntimeAlive", "runtimeKeepalivePush", "runtimeKeepalivePop", "callUserCallback", "maybeExit", "asyncLoad", "alignMemory", "mmapAlloc", "HandleAllocator", "wasmTable", "getUniqueRunDependency", "noExitRuntime", "addOnPreRun", "addOnExit", "addOnPostRun", "sigToWasmTypes", "freeTableIndexes", "functionsInTableMap", "setValue", "getValue", "PATH", "PATH_FS", "UTF8Decoder", "UTF8ArrayToString", "UTF8ToString", "stringToUTF8Array", "stringToUTF8", "lengthBytesUTF8", "intArrayFromString", "UTF16Decoder", "stringToNewUTF8", "stringToUTF8OnStack", "writeArrayToMemory", "JSEvents", "registerKeyEventCallback", "specialHTMLTargets", "maybeCStringToJsString", "findEventTarget", "findCanvasEventTarget", "getBoundingClientRect", "fillMouseEventData", "registerMouseEventCallback", "registerWheelEventCallback", "registerUiEventCallback", "registerFocusEventCallback", "fillFullscreenChangeEventData", "registerFullscreenChangeEventCallback", "JSEvents_requestFullscreen", "JSEvents_resizeCanvasForFullscreen", "registerRestoreOldStyle", "setLetterbox", "currentFullscreenStrategy", "restoreOldWindowedStyle", "doRequestFullscreen", "fillPointerlockChangeEventData", "registerPointerlockChangeEventCallback", "requestPointerLock", "fillVisibilityChangeEventData", "registerVisibilityChangeEventCallback", "registerTouchEventCallback", "fillGamepadEventData", "registerGamepadEventCallback", "registerBeforeUnloadEventCallback", "setCanvasElementSize", "getCanvasElementSize", "UNWIND_CACHE", "ExitStatus", "getEnvStrings", "checkWasiClock", "doReadv", "doWritev", "initRandomFill", "randomFill", "safeSetTimeout", "emSetImmediate", "emClearImmediate_deps", "emClearImmediate", "registerPreMainLoop", "promiseMap", "uncaughtExceptionCount", "exceptionLast", "exceptionCaught", "ExceptionInfo", "getExceptionMessageCommon", "Browser", "requestFullScreen", "setCanvasSize", "getUserMedia", "getPreloadedImageData__data", "wget", "MONTH_DAYS_REGULAR", "MONTH_DAYS_LEAP", "MONTH_DAYS_REGULAR_CUMULATIVE", "MONTH_DAYS_LEAP_CUMULATIVE", "SYSCALLS", "preloadPlugins", "FS_modeStringToFlags", "FS_getMode", "FS_stdin_getChar_buffer", "FS_stdin_getChar", "FS_readFile", "FS", "FS_root", "FS_mounts", "FS_devices", "FS_streams", "FS_nextInode", "FS_nameTable", "FS_currentPath", "FS_initialized", "FS_ignorePermissions", "FS_filesystems", "FS_syncFSRequests", "FS_readFiles", "FS_lookupPath", "FS_getPath", "FS_hashName", "FS_hashAddNode", "FS_hashRemoveNode", "FS_lookupNode", "FS_createNode", "FS_destroyNode", "FS_isRoot", "FS_isMountpoint", "FS_isFile", "FS_isDir", "FS_isLink", "FS_isChrdev", "FS_isBlkdev", "FS_isFIFO", "FS_isSocket", "FS_flagsToPermissionString", "FS_nodePermissions", "FS_mayLookup", "FS_mayCreate", "FS_mayDelete", "FS_mayOpen", "FS_checkOpExists", "FS_nextfd", "FS_getStreamChecked", "FS_getStream", "FS_createStream", "FS_closeStream", "FS_dupStream", "FS_doSetAttr", "FS_chrdev_stream_ops", "FS_major", "FS_minor", "FS_makedev", "FS_registerDevice", "FS_getDevice", "FS_getMounts", "FS_syncfs", "FS_mount", "FS_unmount", "FS_lookup", "FS_mknod", "FS_statfs", "FS_statfsStream", "FS_statfsNode", "FS_create", "FS_mkdir", "FS_mkdev", "FS_symlink", "FS_rename", "FS_rmdir", "FS_readdir", "FS_readlink", "FS_stat", "FS_fstat", "FS_lstat", "FS_doChmod", "FS_chmod", "FS_lchmod", "FS_fchmod", "FS_doChown", "FS_chown", "FS_lchown", "FS_fchown", "FS_doTruncate", "FS_truncate", "FS_ftruncate", "FS_utime", "FS_open", "FS_close", "FS_isClosed", "FS_llseek", "FS_read", "FS_write", "FS_mmap", "FS_msync", "FS_ioctl", "FS_writeFile", "FS_cwd", "FS_chdir", "FS_createDefaultDirectories", "FS_createDefaultDevices", "FS_createSpecialDirectories", "FS_createStandardStreams", "FS_staticInit", "FS_init", "FS_quit", "FS_findObject", "FS_analyzePath", "FS_createFile", "FS_forceLoadFile", "FS_absolutePath", "FS_createFolder", "FS_createLink", "FS_joinPath", "FS_mmapAlloc", "FS_standardizePath", "MEMFS", "TTY", "PIPEFS", "SOCKFS", "tempFixedLengthArray", "miniTempWebGLFloatBuffers", "miniTempWebGLIntBuffers", "heapObjectForWebGLType", "toTypedArrayIndex", "webgl_enable_WEBGL_multi_draw", "webgl_enable_EXT_polygon_offset_clamp", "webgl_enable_EXT_clip_control", "webgl_enable_WEBGL_polygon_mode", "GL", "emscriptenWebGLGet", "computeUnpackAlignedImageSize", "colorChannelsInGlTextureFormat", "emscriptenWebGLGetTexPixelData", "emscriptenWebGLGetUniform", "webglGetUniformLocation", "webglPrepareUniformLocationsBeforeFirstUse", "webglGetLeftBracePos", "emscriptenWebGLGetVertexAttrib", "__glGetActiveAttribOrUniform", "emscriptenWebGLGetBufferBinding", "emscriptenWebGLValidateMapBufferTarget", "AL", "GLUT", "EGL", "GLEW", "IDBStore", "runAndAbortIfError", "Asyncify", "Fibers", "emscriptenWebGLGetIndexed", "webgl_enable_WEBGL_draw_instanced_base_vertex_base_instance", "webgl_enable_WEBGL_multi_draw_instanced_base_vertex_base_instance", "allocateUTF8", "allocateUTF8OnStack", "print", "printErr", "jstoi_s", "Fetch", "fetchDeleteCachedData", "fetchLoadCachedData", "fetchCacheData", "fetchXHR" ];
 
 unexportedSymbols.forEach(unexportedRuntimeSymbol);
 
@@ -10988,15 +11005,7 @@ function checkIncomingModuleAPI() {
 }
 
 var ASM_CONSTS = {
-  892620: $0 => {
-    var str = UTF8ToString($0) + "\n\n" + "Abort/Retry/Ignore/AlwaysIgnore? [ariA] :";
-    var reply = window.prompt(str, "i");
-    if (reply === null) {
-      reply = "i";
-    }
-    return allocate(intArrayFromString(reply), "i8", ALLOC_NORMAL);
-  },
-  892845: () => {
+  988379: () => {
     if (typeof (AudioContext) !== "undefined") {
       return true;
     } else if (typeof (webkitAudioContext) !== "undefined") {
@@ -11004,7 +11013,7 @@ var ASM_CONSTS = {
     }
     return false;
   },
-  892992: () => {
+  988526: () => {
     if ((typeof (navigator.mediaDevices) !== "undefined") && (typeof (navigator.mediaDevices.getUserMedia) !== "undefined")) {
       return true;
     } else if (typeof (navigator.webkitGetUserMedia) !== "undefined") {
@@ -11012,7 +11021,7 @@ var ASM_CONSTS = {
     }
     return false;
   },
-  893226: $0 => {
+  988760: $0 => {
     if (typeof (Module["SDL2"]) === "undefined") {
       Module["SDL2"] = {};
     }
@@ -11036,11 +11045,11 @@ var ASM_CONSTS = {
     }
     return SDL2.audioContext === undefined ? -1 : 0;
   },
-  893778: () => {
+  989312: () => {
     var SDL2 = Module["SDL2"];
     return SDL2.audioContext.sampleRate;
   },
-  893846: ($0, $1, $2, $3) => {
+  989380: ($0, $1, $2, $3) => {
     var SDL2 = Module["SDL2"];
     var have_microphone = function(stream) {
       if (SDL2.capture.silenceTimer !== undefined) {
@@ -11082,7 +11091,7 @@ var ASM_CONSTS = {
       }, have_microphone, no_microphone);
     }
   },
-  895539: ($0, $1, $2, $3) => {
+  991073: ($0, $1, $2, $3) => {
     var SDL2 = Module["SDL2"];
     SDL2.audio.scriptProcessorNode = SDL2.audioContext["createScriptProcessor"]($1, 0, $0);
     SDL2.audio.scriptProcessorNode["onaudioprocess"] = function(e) {
@@ -11114,7 +11123,7 @@ var ASM_CONSTS = {
       SDL2.audio.silenceTimer = setInterval(silence_callback, ($1 / SDL2.audioContext.sampleRate) * 1e3);
     }
   },
-  896714: ($0, $1) => {
+  992248: ($0, $1) => {
     var SDL2 = Module["SDL2"];
     var numChannels = SDL2.capture.currentCaptureBuffer.numberOfChannels;
     for (var c = 0; c < numChannels; ++c) {
@@ -11133,7 +11142,7 @@ var ASM_CONSTS = {
       }
     }
   },
-  897319: ($0, $1) => {
+  992853: ($0, $1) => {
     var SDL2 = Module["SDL2"];
     var buf = $0 >>> 2;
     var numChannels = SDL2.audio.currentOutputBuffer["numberOfChannels"];
@@ -11147,7 +11156,7 @@ var ASM_CONSTS = {
       }
     }
   },
-  897808: $0 => {
+  993342: $0 => {
     var SDL2 = Module["SDL2"];
     if ($0) {
       if (SDL2.capture.silenceTimer !== undefined) {
@@ -11181,7 +11190,9 @@ var ASM_CONSTS = {
       SDL2.audioContext = undefined;
     }
   },
-  898814: ($0, $1, $2) => {
+  994348: () => window.innerWidth,
+  994378: () => window.innerHeight,
+  994409: ($0, $1, $2) => {
     var w = $0;
     var h = $1;
     var pixels = $2;
@@ -11252,7 +11263,7 @@ var ASM_CONSTS = {
     }
     SDL2.ctx.putImageData(SDL2.image, 0, 0);
   },
-  900282: ($0, $1, $2, $3, $4) => {
+  995877: ($0, $1, $2, $3, $4) => {
     var w = $0;
     var h = $1;
     var hot_x = $2;
@@ -11289,26 +11300,39 @@ var ASM_CONSTS = {
     stringToUTF8(url, urlBuf, url.length + 1);
     return urlBuf;
   },
-  901270: $0 => {
+  996865: $0 => {
     if (Module["canvas"]) {
       Module["canvas"].style["cursor"] = UTF8ToString($0);
     }
   },
-  901353: () => {
+  996948: () => {
     if (Module["canvas"]) {
       Module["canvas"].style["cursor"] = "none";
     }
-  },
-  901422: () => window.innerWidth,
-  901452: () => window.innerHeight
+  }
 };
+
+function loadFromStorageImpl(key) {
+  var val = localStorage.getItem(UTF8ToString(key));
+  if (!val) {
+    return 0;
+  }
+  var lengthBytes = lengthBytesUTF8(val) + 1;
+  var stringOnWasmHeap = _malloc(lengthBytes);
+  stringToUTF8(val, stringOnWasmHeap, lengthBytes);
+  return stringOnWasmHeap;
+}
+
+function saveToStorageImpl(key, value) {
+  localStorage.setItem(UTF8ToString(key), UTF8ToString(value));
+}
 
 // Imports from the Wasm binary.
 var _main = Module["_main"] = makeInvalidEarlyAccess("_main");
 
-var _malloc = makeInvalidEarlyAccess("_malloc");
-
 var _free = makeInvalidEarlyAccess("_free");
+
+var _malloc = makeInvalidEarlyAccess("_malloc");
 
 var _fflush = makeInvalidEarlyAccess("_fflush");
 
@@ -11320,9 +11344,9 @@ var _emscripten_stack_get_base = makeInvalidEarlyAccess("_emscripten_stack_get_b
 
 var _emscripten_builtin_memalign = makeInvalidEarlyAccess("_emscripten_builtin_memalign");
 
-var _setThrew = makeInvalidEarlyAccess("_setThrew");
+var __emscripten_timeout = makeInvalidEarlyAccess("__emscripten_timeout");
 
-var __emscripten_tempret_set = makeInvalidEarlyAccess("__emscripten_tempret_set");
+var _setThrew = makeInvalidEarlyAccess("_setThrew");
 
 var _emscripten_stack_init = makeInvalidEarlyAccess("_emscripten_stack_init");
 
@@ -11346,43 +11370,25 @@ var ___cxa_can_catch = makeInvalidEarlyAccess("___cxa_can_catch");
 
 var ___cxa_get_exception_ptr = makeInvalidEarlyAccess("___cxa_get_exception_ptr");
 
+var dynCall_iii = makeInvalidEarlyAccess("dynCall_iii");
+
 var dynCall_ii = makeInvalidEarlyAccess("dynCall_ii");
 
-var dynCall_vifi = makeInvalidEarlyAccess("dynCall_vifi");
-
-var dynCall_vif = makeInvalidEarlyAccess("dynCall_vif");
-
 var dynCall_vi = makeInvalidEarlyAccess("dynCall_vi");
+
+var dynCall_iiiiii = makeInvalidEarlyAccess("dynCall_iiiiii");
 
 var dynCall_vii = makeInvalidEarlyAccess("dynCall_vii");
 
 var dynCall_viii = makeInvalidEarlyAccess("dynCall_viii");
 
-var dynCall_iii = makeInvalidEarlyAccess("dynCall_iii");
-
-var dynCall_viiii = makeInvalidEarlyAccess("dynCall_viiii");
-
-var dynCall_v = makeInvalidEarlyAccess("dynCall_v");
+var dynCall_iiiii = makeInvalidEarlyAccess("dynCall_iiiii");
 
 var dynCall_iiii = makeInvalidEarlyAccess("dynCall_iiii");
 
-var dynCall_iiiiiiiii = makeInvalidEarlyAccess("dynCall_iiiiiiiii");
-
-var dynCall_iiiiii = makeInvalidEarlyAccess("dynCall_iiiiii");
-
-var dynCall_viiiiii = makeInvalidEarlyAccess("dynCall_viiiiii");
-
-var dynCall_iijii = makeInvalidEarlyAccess("dynCall_iijii");
+var dynCall_viiii = makeInvalidEarlyAccess("dynCall_viiii");
 
 var dynCall_viiiii = makeInvalidEarlyAccess("dynCall_viiiii");
-
-var dynCall_iiiii = makeInvalidEarlyAccess("dynCall_iiiii");
-
-var dynCall_ji = makeInvalidEarlyAccess("dynCall_ji");
-
-var dynCall_jiji = makeInvalidEarlyAccess("dynCall_jiji");
-
-var dynCall_i = makeInvalidEarlyAccess("dynCall_i");
 
 var dynCall_iiiiiiiiii = makeInvalidEarlyAccess("dynCall_iiiiiiiiii");
 
@@ -11392,11 +11398,43 @@ var dynCall_iiiiiii = makeInvalidEarlyAccess("dynCall_iiiiiii");
 
 var dynCall_iiiiiiii = makeInvalidEarlyAccess("dynCall_iiiiiiii");
 
-var dynCall_iiji = makeInvalidEarlyAccess("dynCall_iiji");
+var dynCall_v = makeInvalidEarlyAccess("dynCall_v");
+
+var dynCall_vifi = makeInvalidEarlyAccess("dynCall_vifi");
+
+var dynCall_vif = makeInvalidEarlyAccess("dynCall_vif");
+
+var dynCall_iiifd = makeInvalidEarlyAccess("dynCall_iiifd");
+
+var dynCall_dd = makeInvalidEarlyAccess("dynCall_dd");
+
+var dynCall_fii = makeInvalidEarlyAccess("dynCall_fii");
+
+var dynCall_fi = makeInvalidEarlyAccess("dynCall_fi");
+
+var dynCall_vifii = makeInvalidEarlyAccess("dynCall_vifii");
+
+var dynCall_jiji = makeInvalidEarlyAccess("dynCall_jiji");
+
+var dynCall_ji = makeInvalidEarlyAccess("dynCall_ji");
+
+var dynCall_i = makeInvalidEarlyAccess("dynCall_i");
+
+var dynCall_iiiiiiiii = makeInvalidEarlyAccess("dynCall_iiiiiiiii");
+
+var dynCall_viiiiii = makeInvalidEarlyAccess("dynCall_viiiiii");
+
+var dynCall_iijii = makeInvalidEarlyAccess("dynCall_iijii");
 
 var dynCall_iid = makeInvalidEarlyAccess("dynCall_iid");
 
 var dynCall_di = makeInvalidEarlyAccess("dynCall_di");
+
+var dynCall_iiji = makeInvalidEarlyAccess("dynCall_iiji");
+
+var dynCall_jij = makeInvalidEarlyAccess("dynCall_jij");
+
+var dynCall_iij = makeInvalidEarlyAccess("dynCall_iij");
 
 var dynCall_vffff = makeInvalidEarlyAccess("dynCall_vffff");
 
@@ -11428,33 +11466,15 @@ var dynCall_viifi = makeInvalidEarlyAccess("dynCall_viifi");
 
 var dynCall_iidiiii = makeInvalidEarlyAccess("dynCall_iidiiii");
 
-var dynCall_j = makeInvalidEarlyAccess("dynCall_j");
+var dynCall_viijii = makeInvalidEarlyAccess("dynCall_viijii");
 
 var dynCall_iiiiij = makeInvalidEarlyAccess("dynCall_iiiiij");
 
 var dynCall_iiiiid = makeInvalidEarlyAccess("dynCall_iiiiid");
 
-var dynCall_viijii = makeInvalidEarlyAccess("dynCall_viijii");
-
-var dynCall_iiiiiiiiiii = makeInvalidEarlyAccess("dynCall_iiiiiiiiiii");
-
-var dynCall_jiiii = makeInvalidEarlyAccess("dynCall_jiiii");
-
-var dynCall_iiiiiiiiiiiii = makeInvalidEarlyAccess("dynCall_iiiiiiiiiiiii");
-
-var dynCall_fiii = makeInvalidEarlyAccess("dynCall_fiii");
-
-var dynCall_diii = makeInvalidEarlyAccess("dynCall_diii");
-
-var dynCall_iiiiiiiiiiii = makeInvalidEarlyAccess("dynCall_iiiiiiiiiiii");
-
-var dynCall_viiiiiiiiiiiiiii = makeInvalidEarlyAccess("dynCall_viiiiiiiiiiiiiii");
-
 var dynCall_iiiiijj = makeInvalidEarlyAccess("dynCall_iiiiijj");
 
 var dynCall_iiiiiijj = makeInvalidEarlyAccess("dynCall_iiiiiijj");
-
-var dynCall_viid = makeInvalidEarlyAccess("dynCall_viid");
 
 var _asyncify_start_unwind = makeInvalidEarlyAccess("_asyncify_start_unwind");
 
@@ -11466,15 +11486,15 @@ var _asyncify_stop_rewind = makeInvalidEarlyAccess("_asyncify_stop_rewind");
 
 function assignWasmExports(wasmExports) {
   Module["_main"] = _main = createExportWrapper("__main_argc_argv", 2);
-  _malloc = createExportWrapper("malloc", 1);
   _free = createExportWrapper("free", 1);
+  _malloc = createExportWrapper("malloc", 1);
   _fflush = createExportWrapper("fflush", 1);
   _strerror = createExportWrapper("strerror", 1);
   _emscripten_stack_get_end = wasmExports["emscripten_stack_get_end"];
   _emscripten_stack_get_base = wasmExports["emscripten_stack_get_base"];
   _emscripten_builtin_memalign = createExportWrapper("emscripten_builtin_memalign", 2);
+  __emscripten_timeout = createExportWrapper("_emscripten_timeout", 2);
   _setThrew = createExportWrapper("setThrew", 2);
-  __emscripten_tempret_set = createExportWrapper("_emscripten_tempret_set", 1);
   _emscripten_stack_init = wasmExports["emscripten_stack_init"];
   _emscripten_stack_get_free = wasmExports["emscripten_stack_get_free"];
   __emscripten_stack_restore = wasmExports["_emscripten_stack_restore"];
@@ -11486,32 +11506,39 @@ function assignWasmExports(wasmExports) {
   ___get_exception_message = createExportWrapper("__get_exception_message", 3);
   ___cxa_can_catch = createExportWrapper("__cxa_can_catch", 3);
   ___cxa_get_exception_ptr = createExportWrapper("__cxa_get_exception_ptr", 1);
+  dynCalls["iii"] = dynCall_iii = createExportWrapper("dynCall_iii", 3);
   dynCalls["ii"] = dynCall_ii = createExportWrapper("dynCall_ii", 2);
-  dynCalls["vifi"] = dynCall_vifi = createExportWrapper("dynCall_vifi", 4);
-  dynCalls["vif"] = dynCall_vif = createExportWrapper("dynCall_vif", 3);
   dynCalls["vi"] = dynCall_vi = createExportWrapper("dynCall_vi", 2);
+  dynCalls["iiiiii"] = dynCall_iiiiii = createExportWrapper("dynCall_iiiiii", 6);
   dynCalls["vii"] = dynCall_vii = createExportWrapper("dynCall_vii", 3);
   dynCalls["viii"] = dynCall_viii = createExportWrapper("dynCall_viii", 4);
-  dynCalls["iii"] = dynCall_iii = createExportWrapper("dynCall_iii", 3);
-  dynCalls["viiii"] = dynCall_viiii = createExportWrapper("dynCall_viiii", 5);
-  dynCalls["v"] = dynCall_v = createExportWrapper("dynCall_v", 1);
-  dynCalls["iiii"] = dynCall_iiii = createExportWrapper("dynCall_iiii", 4);
-  dynCalls["iiiiiiiii"] = dynCall_iiiiiiiii = createExportWrapper("dynCall_iiiiiiiii", 9);
-  dynCalls["iiiiii"] = dynCall_iiiiii = createExportWrapper("dynCall_iiiiii", 6);
-  dynCalls["viiiiii"] = dynCall_viiiiii = createExportWrapper("dynCall_viiiiii", 7);
-  dynCalls["iijii"] = dynCall_iijii = createExportWrapper("dynCall_iijii", 5);
-  dynCalls["viiiii"] = dynCall_viiiii = createExportWrapper("dynCall_viiiii", 6);
   dynCalls["iiiii"] = dynCall_iiiii = createExportWrapper("dynCall_iiiii", 5);
-  dynCalls["ji"] = dynCall_ji = createExportWrapper("dynCall_ji", 2);
-  dynCalls["jiji"] = dynCall_jiji = createExportWrapper("dynCall_jiji", 4);
-  dynCalls["i"] = dynCall_i = createExportWrapper("dynCall_i", 1);
+  dynCalls["iiii"] = dynCall_iiii = createExportWrapper("dynCall_iiii", 4);
+  dynCalls["viiii"] = dynCall_viiii = createExportWrapper("dynCall_viiii", 5);
+  dynCalls["viiiii"] = dynCall_viiiii = createExportWrapper("dynCall_viiiii", 6);
   dynCalls["iiiiiiiiii"] = dynCall_iiiiiiiiii = createExportWrapper("dynCall_iiiiiiiiii", 10);
   dynCalls["viiiiiiii"] = dynCall_viiiiiiii = createExportWrapper("dynCall_viiiiiiii", 9);
   dynCalls["iiiiiii"] = dynCall_iiiiiii = createExportWrapper("dynCall_iiiiiii", 7);
   dynCalls["iiiiiiii"] = dynCall_iiiiiiii = createExportWrapper("dynCall_iiiiiiii", 8);
-  dynCalls["iiji"] = dynCall_iiji = createExportWrapper("dynCall_iiji", 4);
+  dynCalls["v"] = dynCall_v = createExportWrapper("dynCall_v", 1);
+  dynCalls["vifi"] = dynCall_vifi = createExportWrapper("dynCall_vifi", 4);
+  dynCalls["vif"] = dynCall_vif = createExportWrapper("dynCall_vif", 3);
+  dynCalls["iiifd"] = dynCall_iiifd = createExportWrapper("dynCall_iiifd", 5);
+  dynCalls["dd"] = dynCall_dd = createExportWrapper("dynCall_dd", 2);
+  dynCalls["fii"] = dynCall_fii = createExportWrapper("dynCall_fii", 3);
+  dynCalls["fi"] = dynCall_fi = createExportWrapper("dynCall_fi", 2);
+  dynCalls["vifii"] = dynCall_vifii = createExportWrapper("dynCall_vifii", 5);
+  dynCalls["jiji"] = dynCall_jiji = createExportWrapper("dynCall_jiji", 4);
+  dynCalls["ji"] = dynCall_ji = createExportWrapper("dynCall_ji", 2);
+  dynCalls["i"] = dynCall_i = createExportWrapper("dynCall_i", 1);
+  dynCalls["iiiiiiiii"] = dynCall_iiiiiiiii = createExportWrapper("dynCall_iiiiiiiii", 9);
+  dynCalls["viiiiii"] = dynCall_viiiiii = createExportWrapper("dynCall_viiiiii", 7);
+  dynCalls["iijii"] = dynCall_iijii = createExportWrapper("dynCall_iijii", 5);
   dynCalls["iid"] = dynCall_iid = createExportWrapper("dynCall_iid", 3);
   dynCalls["di"] = dynCall_di = createExportWrapper("dynCall_di", 2);
+  dynCalls["iiji"] = dynCall_iiji = createExportWrapper("dynCall_iiji", 4);
+  dynCalls["jij"] = dynCall_jij = createExportWrapper("dynCall_jij", 3);
+  dynCalls["iij"] = dynCall_iij = createExportWrapper("dynCall_iij", 3);
   dynCalls["vffff"] = dynCall_vffff = createExportWrapper("dynCall_vffff", 5);
   dynCalls["vf"] = dynCall_vf = createExportWrapper("dynCall_vf", 2);
   dynCalls["viiiiiiiii"] = dynCall_viiiiiiiii = createExportWrapper("dynCall_viiiiiiiii", 10);
@@ -11527,20 +11554,11 @@ function assignWasmExports(wasmExports) {
   dynCalls["viiiiiiiiiii"] = dynCall_viiiiiiiiiii = createExportWrapper("dynCall_viiiiiiiiiii", 12);
   dynCalls["viifi"] = dynCall_viifi = createExportWrapper("dynCall_viifi", 5);
   dynCalls["iidiiii"] = dynCall_iidiiii = createExportWrapper("dynCall_iidiiii", 7);
-  dynCalls["j"] = dynCall_j = createExportWrapper("dynCall_j", 1);
+  dynCalls["viijii"] = dynCall_viijii = createExportWrapper("dynCall_viijii", 6);
   dynCalls["iiiiij"] = dynCall_iiiiij = createExportWrapper("dynCall_iiiiij", 6);
   dynCalls["iiiiid"] = dynCall_iiiiid = createExportWrapper("dynCall_iiiiid", 6);
-  dynCalls["viijii"] = dynCall_viijii = createExportWrapper("dynCall_viijii", 6);
-  dynCalls["iiiiiiiiiii"] = dynCall_iiiiiiiiiii = createExportWrapper("dynCall_iiiiiiiiiii", 11);
-  dynCalls["jiiii"] = dynCall_jiiii = createExportWrapper("dynCall_jiiii", 5);
-  dynCalls["iiiiiiiiiiiii"] = dynCall_iiiiiiiiiiiii = createExportWrapper("dynCall_iiiiiiiiiiiii", 13);
-  dynCalls["fiii"] = dynCall_fiii = createExportWrapper("dynCall_fiii", 4);
-  dynCalls["diii"] = dynCall_diii = createExportWrapper("dynCall_diii", 4);
-  dynCalls["iiiiiiiiiiii"] = dynCall_iiiiiiiiiiii = createExportWrapper("dynCall_iiiiiiiiiiii", 12);
-  dynCalls["viiiiiiiiiiiiiii"] = dynCall_viiiiiiiiiiiiiii = createExportWrapper("dynCall_viiiiiiiiiiiiiii", 16);
   dynCalls["iiiiijj"] = dynCall_iiiiijj = createExportWrapper("dynCall_iiiiijj", 7);
   dynCalls["iiiiiijj"] = dynCall_iiiiiijj = createExportWrapper("dynCall_iiiiiijj", 8);
-  dynCalls["viid"] = dynCall_viid = createExportWrapper("dynCall_viid", 4);
   _asyncify_start_unwind = createExportWrapper("asyncify_start_unwind", 1);
   _asyncify_stop_unwind = createExportWrapper("asyncify_stop_unwind", 0);
   _asyncify_start_rewind = createExportWrapper("asyncify_start_rewind", 1);
@@ -11549,14 +11567,10 @@ function assignWasmExports(wasmExports) {
 
 var wasmImports = {
   /** @export */ __assert_fail: ___assert_fail,
-  /** @export */ __cxa_begin_catch: ___cxa_begin_catch,
-  /** @export */ __cxa_end_catch: ___cxa_end_catch,
-  /** @export */ __cxa_find_matching_catch_2: ___cxa_find_matching_catch_2,
-  /** @export */ __cxa_find_matching_catch_3: ___cxa_find_matching_catch_3,
-  /** @export */ __cxa_rethrow: ___cxa_rethrow,
+  /** @export */ __call_sighandler: ___call_sighandler,
   /** @export */ __cxa_throw: ___cxa_throw,
   /** @export */ __cxa_uncaught_exceptions: ___cxa_uncaught_exceptions,
-  /** @export */ __resumeException: ___resumeException,
+  /** @export */ __syscall__newselect: ___syscall__newselect,
   /** @export */ __syscall_fcntl64: ___syscall_fcntl64,
   /** @export */ __syscall_fstat64: ___syscall_fstat64,
   /** @export */ __syscall_ioctl: ___syscall_ioctl,
@@ -11566,9 +11580,11 @@ var wasmImports = {
   /** @export */ __syscall_stat64: ___syscall_stat64,
   /** @export */ _abort_js: __abort_js,
   /** @export */ _emscripten_fs_load_embedded_files: __emscripten_fs_load_embedded_files,
+  /** @export */ _emscripten_runtime_keepalive_clear: __emscripten_runtime_keepalive_clear,
   /** @export */ _emscripten_throw_longjmp: __emscripten_throw_longjmp,
   /** @export */ _mmap_js: __mmap_js,
   /** @export */ _munmap_js: __munmap_js,
+  /** @export */ _setitimer_js: __setitimer_js,
   /** @export */ _tzset_js: __tzset_js,
   /** @export */ clock_time_get: _clock_time_get,
   /** @export */ eglBindAPI: _eglBindAPI,
@@ -11896,6 +11912,7 @@ var wasmImports = {
   /** @export */ emscripten_set_keydown_callback_on_thread: _emscripten_set_keydown_callback_on_thread,
   /** @export */ emscripten_set_keypress_callback_on_thread: _emscripten_set_keypress_callback_on_thread,
   /** @export */ emscripten_set_keyup_callback_on_thread: _emscripten_set_keyup_callback_on_thread,
+  /** @export */ emscripten_set_main_loop_arg: _emscripten_set_main_loop_arg,
   /** @export */ emscripten_set_mousedown_callback_on_thread: _emscripten_set_mousedown_callback_on_thread,
   /** @export */ emscripten_set_mouseenter_callback_on_thread: _emscripten_set_mouseenter_callback_on_thread,
   /** @export */ emscripten_set_mouseleave_callback_on_thread: _emscripten_set_mouseleave_callback_on_thread,
@@ -11914,7 +11931,6 @@ var wasmImports = {
   /** @export */ emscripten_start_fetch: _emscripten_start_fetch,
   /** @export */ environ_get: _environ_get,
   /** @export */ environ_sizes_get: _environ_sizes_get,
-  /** @export */ exit: _exit,
   /** @export */ fd_close: _fd_close,
   /** @export */ fd_read: _fd_read,
   /** @export */ fd_seek: _fd_seek,
@@ -11945,7 +11961,6 @@ var wasmImports = {
   /** @export */ glDeleteTextures: _glDeleteTextures,
   /** @export */ glDeleteVertexArrays: _glDeleteVertexArrays,
   /** @export */ glDeleteVertexArraysOES: _glDeleteVertexArraysOES,
-  /** @export */ glDetachShader: _glDetachShader,
   /** @export */ glDisable: _glDisable,
   /** @export */ glDrawArrays: _glDrawArrays,
   /** @export */ glDrawArraysInstanced: _glDrawArraysInstanced,
@@ -11959,7 +11974,6 @@ var wasmImports = {
   /** @export */ glGenVertexArrays: _glGenVertexArrays,
   /** @export */ glGenVertexArraysOES: _glGenVertexArraysOES,
   /** @export */ glGenerateMipmap: _glGenerateMipmap,
-  /** @export */ glGetAttribLocation: _glGetAttribLocation,
   /** @export */ glGetIntegerv: _glGetIntegerv,
   /** @export */ glGetProgramInfoLog: _glGetProgramInfoLog,
   /** @export */ glGetProgramiv: _glGetProgramiv,
@@ -11978,42 +11992,24 @@ var wasmImports = {
   /** @export */ glTexSubImage2D: _glTexSubImage2D,
   /** @export */ glUniform1f: _glUniform1f,
   /** @export */ glUniform1i: _glUniform1i,
-  /** @export */ glUniform2fv: _glUniform2fv,
-  /** @export */ glUniform3fv: _glUniform3fv,
-  /** @export */ glUniform4fv: _glUniform4fv,
+  /** @export */ glUniform2f: _glUniform2f,
+  /** @export */ glUniform3f: _glUniform3f,
+  /** @export */ glUniform4f: _glUniform4f,
   /** @export */ glUniformMatrix4fv: _glUniformMatrix4fv,
   /** @export */ glUseProgram: _glUseProgram,
   /** @export */ glVertexAttribDivisor: _glVertexAttribDivisor,
   /** @export */ glVertexAttribIPointer: _glVertexAttribIPointer,
   /** @export */ glVertexAttribPointer: _glVertexAttribPointer,
   /** @export */ glViewport: _glViewport,
-  /** @export */ invoke_diii,
-  /** @export */ invoke_fiii,
-  /** @export */ invoke_i,
-  /** @export */ invoke_ii,
   /** @export */ invoke_iii,
   /** @export */ invoke_iiii,
   /** @export */ invoke_iiiii,
-  /** @export */ invoke_iiiiid,
-  /** @export */ invoke_iiiiii,
-  /** @export */ invoke_iiiiiii,
-  /** @export */ invoke_iiiiiiii,
-  /** @export */ invoke_iiiiiiiiiii,
-  /** @export */ invoke_iiiiiiiiiiii,
-  /** @export */ invoke_iiiiiiiiiiiii,
-  /** @export */ invoke_iiiiij,
-  /** @export */ invoke_j,
-  /** @export */ invoke_jiiii,
   /** @export */ invoke_v,
-  /** @export */ invoke_vi,
-  /** @export */ invoke_vii,
-  /** @export */ invoke_viid,
-  /** @export */ invoke_viii,
   /** @export */ invoke_viiii,
-  /** @export */ invoke_viiiiiii,
-  /** @export */ invoke_viiiiiiiiii,
-  /** @export */ invoke_viiiiiiiiiiiiiii,
-  /** @export */ random_get: _random_get
+  /** @export */ loadFromStorageImpl,
+  /** @export */ proc_exit: _proc_exit,
+  /** @export */ random_get: _random_get,
+  /** @export */ saveToStorageImpl
 };
 
 var wasmExports;
@@ -12068,239 +12064,6 @@ function invoke_iiii(index, a1, a2, a3) {
   var sp = stackSave();
   try {
     return dynCall_iiii(index, a1, a2, a3);
-  } catch (e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_j(index) {
-  var sp = stackSave();
-  try {
-    return dynCall_j(index);
-  } catch (e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-    return 0n;
-  }
-}
-
-function invoke_vii(index, a1, a2) {
-  var sp = stackSave();
-  try {
-    dynCall_vii(index, a1, a2);
-  } catch (e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_viii(index, a1, a2, a3) {
-  var sp = stackSave();
-  try {
-    dynCall_viii(index, a1, a2, a3);
-  } catch (e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_vi(index, a1) {
-  var sp = stackSave();
-  try {
-    dynCall_vi(index, a1);
-  } catch (e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_viiiiiii(index, a1, a2, a3, a4, a5, a6, a7) {
-  var sp = stackSave();
-  try {
-    dynCall_viiiiiii(index, a1, a2, a3, a4, a5, a6, a7);
-  } catch (e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_iiiiii(index, a1, a2, a3, a4, a5) {
-  var sp = stackSave();
-  try {
-    return dynCall_iiiiii(index, a1, a2, a3, a4, a5);
-  } catch (e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_ii(index, a1) {
-  var sp = stackSave();
-  try {
-    return dynCall_ii(index, a1);
-  } catch (e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_iiiiiii(index, a1, a2, a3, a4, a5, a6) {
-  var sp = stackSave();
-  try {
-    return dynCall_iiiiiii(index, a1, a2, a3, a4, a5, a6);
-  } catch (e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_iiiiij(index, a1, a2, a3, a4, a5) {
-  var sp = stackSave();
-  try {
-    return dynCall_iiiiij(index, a1, a2, a3, a4, a5);
-  } catch (e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_iiiiid(index, a1, a2, a3, a4, a5) {
-  var sp = stackSave();
-  try {
-    return dynCall_iiiiid(index, a1, a2, a3, a4, a5);
-  } catch (e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_iiiiiiii(index, a1, a2, a3, a4, a5, a6, a7) {
-  var sp = stackSave();
-  try {
-    return dynCall_iiiiiiii(index, a1, a2, a3, a4, a5, a6, a7);
-  } catch (e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_iiiiiiiiiii(index, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10) {
-  var sp = stackSave();
-  try {
-    return dynCall_iiiiiiiiiii(index, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10);
-  } catch (e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_jiiii(index, a1, a2, a3, a4) {
-  var sp = stackSave();
-  try {
-    return dynCall_jiiii(index, a1, a2, a3, a4);
-  } catch (e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-    return 0n;
-  }
-}
-
-function invoke_iiiiiiiiiiiii(index, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12) {
-  var sp = stackSave();
-  try {
-    return dynCall_iiiiiiiiiiiii(index, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12);
-  } catch (e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_fiii(index, a1, a2, a3) {
-  var sp = stackSave();
-  try {
-    return dynCall_fiii(index, a1, a2, a3);
-  } catch (e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_diii(index, a1, a2, a3) {
-  var sp = stackSave();
-  try {
-    return dynCall_diii(index, a1, a2, a3);
-  } catch (e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_i(index) {
-  var sp = stackSave();
-  try {
-    return dynCall_i(index);
-  } catch (e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_iiiiiiiiiiii(index, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11) {
-  var sp = stackSave();
-  try {
-    return dynCall_iiiiiiiiiiii(index, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11);
-  } catch (e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_viiiiiiiiii(index, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10) {
-  var sp = stackSave();
-  try {
-    dynCall_viiiiiiiiii(index, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10);
-  } catch (e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_viiiiiiiiiiiiiii(index, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15) {
-  var sp = stackSave();
-  try {
-    dynCall_viiiiiiiiiiiiiii(index, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15);
-  } catch (e) {
-    stackRestore(sp);
-    if (!(e instanceof EmscriptenEH)) throw e;
-    _setThrew(1, 0);
-  }
-}
-
-function invoke_viid(index, a1, a2, a3) {
-  var sp = stackSave();
-  try {
-    dynCall_viid(index, a1, a2, a3);
   } catch (e) {
     stackRestore(sp);
     if (!(e instanceof EmscriptenEH)) throw e;

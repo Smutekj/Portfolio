@@ -1,0 +1,60 @@
+{
+  "levels": [
+    {
+      "name": "BoxBumpsLevel",
+      "difficulty": 0
+    },
+    {
+      "name": "MeteorTunnelLevel",
+      "difficulty": 0
+    },
+    {
+      "name": "UFOBumpsLevel",
+      "difficulty": 1
+    },
+    {
+      "name": "RoomTurretLevel",
+      "difficulty": 1
+    },
+    {
+      "name": "BoxHoleLevel",
+      "difficulty": 1
+    },
+    {
+      "name": "PatrolRoomsLevel",
+      "difficulty": 1
+    },
+    {
+      "name": "MeteorTunnelLevel",
+      "difficulty": 2
+    },
+    {
+      "name": "UFOBumpsLevel",
+      "difficulty": 2
+    },
+    {
+      "name": "SuicideRoomsLevel",
+      "difficulty": 2
+    },
+    {
+      "name": "ChallengeTunnel",
+      "difficulty": 2
+    },
+    {
+      "name": "RoomTurretLevel",
+      "difficulty": 2
+    },
+    {
+      "name": "BoxBumpsLevel",
+      "difficulty": 2
+    },
+    {
+      "name": "SuicideRoomsLevel",
+      "difficulty": 4
+    },
+    {
+      "name": "SuicideRoomsLevel",
+      "difficulty": 4
+    }
+  ]
+}

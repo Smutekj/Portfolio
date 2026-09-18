@@ -1,0 +1,10 @@
+{
+    "infinite": {
+        "levelsConfig": {
+            "max_level_difficulty": 20,
+            "levels_to_increase_difficulty": 1,
+            "speed_increase_per_level": 10,
+            "max_player_speed": 220
+        }
+    }
+}

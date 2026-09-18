@@ -1,0 +1,18 @@
+{
+    "DestroyMeteors1": {
+        "type": "Destroy",
+        "data": {
+            "type": "Meteor",
+            "count": 4,
+            "nameSingular": "Meteor",
+            "namePlural": "Meteors"
+        }
+    },
+    "NoDamage1": {
+        "type": "NoDamage",
+        "data": {
+            "time": 60,
+            "damage": 50
+        }
+    }
+}

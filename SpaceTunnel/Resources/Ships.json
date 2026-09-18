@@ -1,0 +1,226 @@
+{
+  "data": [
+    {
+      "id": "START",
+      "unlockedByDefault": true,
+      "price": 0,
+      "data": {
+        "speed": {
+          "min": 110.0,
+          "max": 200.0,
+          "maxLevel": 5
+        },
+        "turn": {
+          "min": 120.0,
+          "max": 210.0,
+          "maxLevel": 5
+        },
+        "turnControl": {
+          "min": 0.80,
+          "max": 0.10,
+          "maxLevel": 5
+        },
+        "rocketCooldown": {
+          "min": 2.0,
+          "max": 0.3,
+          "maxLevel": 5
+        },
+        "fuel": {
+          "min": 45.0,
+          "max": 90.0,
+          "maxLevel": 5
+        },
+        "boostFuelConsumption": {
+          "min": 2.0,
+          "max": 0.8,
+          "maxLevel": 5
+        },
+        "boostForce": {
+          "min": 40.0,
+          "max": 80.0,
+          "maxLevel": 5
+        },
+        "health": {
+          "min": 40.0,
+          "max": 120.0,
+          "maxLevel": 5
+        },
+        "speedControl": 15.0,
+        "breakFactor": 1.0,
+        "slowFactor": 1.0,
+        "boostJumpFactor": 1.2,
+        "mass": 1.0,
+        "size": 12.0,
+        "ability1Id": "Rocket",
+        "ability2Id": "Boost",
+        "shipSpriteId": "PlayerShip1"
+      }
+    },{
+      "id": "SLOW",
+      "unlockedByDefault": false,
+      "price": 10000,
+      "data": {
+        "speed": {
+          "min": 100.0,
+          "max": 170.0,
+          "maxLevel": 5
+        },
+        "turn": {
+          "min": 100.0,
+          "max": 190.0,
+          "maxLevel": 5
+        },
+        "turnControl": {
+          "min": 0.9,
+          "max": 0.1,
+          "maxLevel": 5
+        },
+        "rocketCooldown": {
+          "min": 2.0,
+          "max": 0.3,
+          "maxLevel": 5
+        },
+        "fuel": {
+          "min": 80.0,
+          "max": 180.0,
+          "maxLevel": 5
+        },
+        "boostFuelConsumption": {
+          "min": 2.0,
+          "max": 0.8,
+          "maxLevel": 5
+        },
+        "boostForce": {
+          "min": 60.0,
+          "max": 90.0,
+          "maxLevel": 5
+        },
+        "health": {
+          "min": 60.0,
+          "max": 160.0,
+          "maxLevel": 5
+        },
+        "speedControl": 5.0,
+        "breakFactor": 1.0,
+        "slowFactor": 2.0,
+        "boostJumpFactor": 1.5,
+        "mass": 4.0,
+        "size": 13.0,
+        "ability1Id": "Shotgun",
+        "ability2Id": "Shield",
+        "shipSpriteId": "PlayerShip2"
+      }
+    },{
+      "id": "SPEEDY",
+      "unlockedByDefault": false,
+      "price": 15000,
+      "data": {
+        "speed": {
+          "min": 140.0,
+          "max": 240.0,
+          "maxLevel": 5
+        },
+        "turn": {
+          "min": 140.0,
+          "max": 240.0,
+          "maxLevel": 5
+        },
+        "turnControl": {
+          "min": 0.9,
+          "max": 0.1,
+          "maxLevel": 5
+        },
+        "rocketCooldown": {
+          "min": 2.0,
+          "max": 0.3,
+          "maxLevel": 5
+        },
+        "fuel": {
+          "min": 30.0,
+          "max": 60.0,
+          "maxLevel": 5
+        },
+        "boostFuelConsumption": {
+          "min": 2.0,
+          "max": 0.8,
+          "maxLevel": 5
+        },
+        "boostForce": {
+          "min": 60.0,
+          "max": 90.0,
+          "maxLevel": 5
+        },
+        "health": {
+          "min": 30.0,
+          "max": 80.0,
+          "maxLevel": 5
+        },
+        "speedControl": 8.0,
+        "breakFactor": 2.0,
+        "slowFactor": 5.0,
+        "boostJumpFactor": 1.5,
+        "mass": 3.0,
+        "size": 11.0,
+        "ability1Id": "BoostSmash",
+        "ability2Id": "Break",
+        "shipSpriteId": "PlayerShip3"
+      }
+    },{
+      "id": "TIMESLOWER",
+      "unlockedByDefault": false,
+      "price": 20000,
+      "data": {
+        "speed": {
+          "min": 150.0,
+          "max": 240.0,
+          "maxLevel": 5
+        },
+        "turn": {
+          "min": 140.0,
+          "max": 240.0,
+          "maxLevel": 5
+        },
+        "turnControl": {
+          "min": 0.9,
+          "max": 0.1,
+          "maxLevel": 5
+        },
+        "rocketCooldown": {
+          "min": 2.0,
+          "max": 0.3,
+          "maxLevel": 5
+        },
+        "fuel": {
+          "min": 60.0,
+          "max": 120.0,
+          "maxLevel": 5
+        },
+        "boostFuelConsumption": {
+          "min": 2.0,
+          "max": 0.8,
+          "maxLevel": 5
+        },
+        "boostForce": {
+          "min": 60.0,
+          "max": 90.0,
+          "maxLevel": 5
+        },
+        "health": {
+          "min": 30.0,
+          "max": 80.0,
+          "maxLevel": 5
+        },
+        "speedControl": 10.0,
+        "breakFactor": 2.0,
+        "slowFactor": 4.0,
+        "boostJumpFactor": 1.5,
+        "mass": 1.0,
+        "size": 11.5,
+        "ability1Id": "Rocket",
+        "ability2Id": "TimeSlow",
+        "shipSpriteId": "PlayerShip4"
+      }
+    }
+
+  ]
+}

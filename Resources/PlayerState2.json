@@ -1,0 +1,59 @@
+{
+  "achievements": {
+    "max_box_hit_count": 0,
+    "max_distance": 0,
+    "max_enemy_kills": 0,
+    "max_fuel_picked_up_count": 0,
+    "max_gates_speedup_count": 0,
+    "max_laser_hit_count": 0,
+    "max_meteor_hit_count": 0,
+    "max_money_picked_up_count": 0,
+    "max_no_hit_time_bullet": 0,
+    "max_no_hit_time_obstacle": 0,
+    "max_no_hit_time_wall": 0,
+    "max_patrol_enemy_kills": 0,
+    "max_perfect_runs": 0,
+    "max_rocket_picked_up_count": 0,
+    "max_suicide_enemy_kills": 0,
+    "max_time": 0,
+    "max_turret_kills": 0,
+    "max_ufo_kills": 0,
+    "max_ufo_snipes": 0,
+    "total_box_hit_count": 0,
+    "total_distance": 0,
+    "total_enemy_kills": 0,
+    "total_explosive_box_hits_survived": 0,
+    "total_gates_speedup_count": 0,
+    "total_laser_hit_count": 0,
+    "total_meteor_hit_count": 0,
+    "total_patrol_enemy_kills": 0,
+    "total_perfect_runs": 0,
+    "total_suicide_enemy_kills": 0,
+    "total_time": 0,
+    "total_turret_kills": 0,
+    "total_ufo_kills": 0,
+    "total_ufo_snipes": 0
+  },
+  "campaign": {"levelStates": null, "selectedLevel": 0},
+  "playerMoney": 700,
+  "powerups": {
+    "doubleCoins": 0,
+    "extraAmmo": false,
+    "extraLives": 0,
+    "permaMagnet": false
+  },
+  "selectedShipId": "START",
+  "shipCollection": {
+    "START": {
+      "ability1Level": 0,
+      "ability2Level": 0,
+      "boostForceLevel": 0,
+      "boostFuelConsumptionLevel": 0,
+      "fuelLevel": 0,
+      "healthLevel": 0,
+      "speedLevel": 0,
+      "turnControlLevel": 0,
+      "turnLevel": 0
+    }
+  }
+}
